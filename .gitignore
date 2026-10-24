@@ -1,0 +1,28 @@
+# Build
+target/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# OS
+.DS_Store
+
+# Local config / secrets
+.env
+*.local.properties
+
+# Test output
+test-output/
+allure-results/
+allure-report/
+recordings/
+*.log
+
+# Node (Appium)
+node_modules/
