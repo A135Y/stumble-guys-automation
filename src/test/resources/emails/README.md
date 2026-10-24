@@ -1,3 +1,4 @@
 Sample emails for parser tests.
 
-`synthetic-*` files are hand-written to match the expected shape. Replace or add `scopely-*` files captured from real emails (code and token values changed) once available.
+- `scopely-*` - real Scopely emails captured by the probe, token replaced with `TESTTOKEN`
+- `synthetic-*` - hand-written, for cases not seen in a real email yet (e.g. a code)

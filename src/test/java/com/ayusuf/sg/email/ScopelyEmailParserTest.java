@@ -11,6 +11,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Test(groups = "unit")
 public class ScopelyEmailParserTest {
 
+    public void realSignUpEmailHasVerifyLinkAndNoCode() {
+        String html = load("scopely-signup.html");
+
+        assertThat(ScopelyEmailParser.signInLink(html)).contains("https://id.scopely.com/email/verify?token=TESTTOKEN");
+        assertThat(ScopelyEmailParser.signInLink(load("scopely-signup.txt")))
+                .contains("https://id.scopely.com/email/verify?token=TESTTOKEN");
+        assertThat(ScopelyEmailParser.oneTimeCode(html)).isEmpty();
+    }
+
     public void findsSignInLinkInHtml() {
         assertThat(ScopelyEmailParser.signInLink(load("synthetic-signin.html")))
                 .contains("https://id.scopely.com/email/verify/abc123?token=TESTTOKEN&state=xyz");
