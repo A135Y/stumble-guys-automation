@@ -34,7 +34,10 @@ public class EmailSignIn {
         ScopelySignInPage page = new HomePage(driver).open().openMenu().clickLogin().continueWithEmail();
         boolean newAccount = complete(page);
         // not urlContains: the Scopely URL carries redirect_uri=https://www.stumbleguys.com in its query
-        new WebDriverWait(driver, Duration.ofSeconds(30)).until(d -> d.getCurrentUrl().startsWith(Config.baseUrl()));
+        // then the site swaps ?code= for tokens asynchronously
+        HomePage home = new HomePage(driver);
+        new WebDriverWait(driver, Duration.ofSeconds(30))
+                .until(d -> d.getCurrentUrl().startsWith(Config.baseUrl()) && home.hasScopelyToken());
         return newAccount;
     }
 
