@@ -1,6 +1,7 @@
 package com.ayusuf.sg.pages;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -36,18 +37,33 @@ public class ScopelySignInPage extends BasePage {
 
     /** Submits the email and accepts the sign-up step if Scopely doesn't know it. Returns true for a new account. */
     public boolean submitEmail(String email) {
-        String before = title();
-        WebElement field = visible(EMAIL);
-        field.clear();
-        field.sendKeys(email);
-        click(SUBMIT);
-
-        waitForTitleChange(before);
-        if (isNewAccountStep()) {
+        // retried: with an existing Scopely session the page can re-render and wipe the field
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            String before = title();
+            if (!typeEmail(email)) continue;
             click(SUBMIT);
-            return true;
+            if (waitForTitleChange(before) || !driver.findElements(CODE_INPUTS).isEmpty()) {
+                if (isNewAccountStep()) {
+                    click(SUBMIT);
+                    return true;
+                }
+                return false;
+            }
         }
-        return false;
+        throw new IllegalStateException("Email step didn't move on after 3 attempts");
+    }
+
+    private boolean typeEmail(String email) {
+        try {
+            WebElement field = visible(EMAIL);
+            field.clear();
+            field.sendKeys(email);
+            new WebDriverWait(driver, Duration.ofSeconds(5)).until(d ->
+                    email.equals(d.findElement(EMAIL).getDomProperty("value")) && d.findElement(SUBMIT).isEnabled());
+            return true;
+        } catch (TimeoutException | StaleElementReferenceException e) {
+            return false;
+        }
     }
 
     public boolean isNewAccountStep() {
@@ -94,12 +110,12 @@ public class ScopelySignInPage extends BasePage {
         return waitUntilVisible(ERROR) ? driver.findElement(ERROR).getText() : "";
     }
 
-    private void waitForTitleChange(String before) {
+    private boolean waitForTitleChange(String before) {
         try {
-            new WebDriverWait(driver, Duration.ofSeconds(10))
-                    .until(d -> !title().equals(before));
-        } catch (TimeoutException ignored) {
-            // some steps keep the same heading
+            new WebDriverWait(driver, Duration.ofSeconds(10)).until(d -> !title().equals(before));
+            return true;
+        } catch (TimeoutException e) {
+            return false;
         }
     }
 }
