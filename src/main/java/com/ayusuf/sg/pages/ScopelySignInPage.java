@@ -1,7 +1,6 @@
 package com.ayusuf.sg.pages;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -12,17 +11,18 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
 import java.util.List;
 
-/** id.scopely.com: email step, new-account step and one-time code step. */
+/** id.scopely.com. New emails get a sign-up link, known emails get a 6-digit code. */
 public class ScopelySignInPage extends BasePage {
 
     private static final By EMAIL = By.cssSelector("input[name='email']");
     // "Continue" on the email step, "Agree and get sign up link" on the new-account step
     private static final By SUBMIT = By.cssSelector("button[data-test-id='site-email-input-submit-button']");
     private static final By TITLE = By.cssSelector("h1.title");
-    private static final By CODE_INPUTS = By.cssSelector(
-            "input[autocomplete='one-time-code'], input[name*='code' i], input[inputmode='numeric']");
+    // one box per digit; there's also a hidden Okta "credentials.passcode" input to avoid
+    private static final By CODE_INPUTS = By.cssSelector("input[class*='OneTimeCodeInput_oneTimeCodeInput']");
+    private static final By CODE_SUBMIT = By.cssSelector("button[class*='OneTimeCodeInput_submitButton']");
     private static final By VERIFY_SUCCESS = By.xpath("//h2[contains(.,'Success')]");
-    private static final By ERROR =By.cssSelector("[role='alert'], .ant-form-item-explain-error");
+    private static final By ERROR = By.cssSelector("[role='alert'], .ant-form-item-explain-error");
 
     public ScopelySignInPage(WebDriver driver) {
         super(driver);
@@ -78,20 +78,16 @@ public class ScopelySignInPage extends BasePage {
         return waitUntilVisible(CODE_INPUTS, Duration.ofSeconds(5));
     }
 
-    /** Handles both a single input and one box per digit. */
     public void enterCode(String code) {
         visible(CODE_INPUTS);
-        List<WebElement> inputs = driver.findElements(CODE_INPUTS).stream().filter(WebElement::isDisplayed).toList();
-        if (inputs.size() >= code.length()) {
-            for (int i = 0; i < code.length(); i++) inputs.get(i).sendKeys(String.valueOf(code.charAt(i)));
-        } else {
-            inputs.getFirst().sendKeys(code);
+        List<WebElement> boxes = driver.findElements(CODE_INPUTS);
+        if (boxes.size() != code.length()) {
+            throw new IllegalStateException("Expected " + code.length() + " code boxes, found " + boxes.size());
         }
-        if (driver.findElements(SUBMIT).stream().anyMatch(WebElement::isDisplayed)) {
-            click(SUBMIT);
-        } else {
-            inputs.getLast().sendKeys(Keys.ENTER);
+        for (int i = 0; i < code.length(); i++) {
+            boxes.get(i).sendKeys(String.valueOf(code.charAt(i)));
         }
+        wait.until(ExpectedConditions.elementToBeClickable(CODE_SUBMIT)).click();
     }
 
     public String errorText() {

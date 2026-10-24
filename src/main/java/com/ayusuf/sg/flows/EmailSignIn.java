@@ -14,8 +14,9 @@ import java.time.Duration;
 import java.time.Instant;
 
 /**
- * Website sign-in: email -> link and/or code from the inbox -> back on stumbleguys.com.
- * The link is opened in a second tab of the same browser; the original tab carries on once it's approved.
+ * Website sign-in via Scopely ID.
+ * New email: sign-up link, opened in a second tab (the original tab carries on once approved).
+ * Known email: 6-digit code typed into the original tab.
  */
 public class EmailSignIn {
 
@@ -29,28 +30,28 @@ public class EmailSignIn {
         this.inbox = inbox;
     }
 
-    public void signIn() {
+    /** Returns true if this created a new Scopely account. */
+    public boolean signIn() {
         ScopelySignInPage signIn = new HomePage(driver).open().openMenu().clickLogin().continueWithEmail();
 
         Instant sent = Instant.now().minusSeconds(5);
-        signIn.submitEmail(inbox.address());
+        boolean newAccount = signIn.submitEmail(inbox.address());
         EmailMessage email = inbox.waitForMessage(sent, EmailSignIn::isScopely, EMAIL_TIMEOUT);
 
-        Instant approved = Instant.now().minusSeconds(2);
-        String link = ScopelyEmailParser.signInLink(email.body())
-                .orElseThrow(() -> new IllegalStateException("No sign-in link in email: " + email.subject()));
-        if (!signIn.approveWithLink(link)) {
-            throw new IllegalStateException("Email link did not show the Success page");
-        }
-
-        if (signIn.isCodeStepShown()) {
-            EmailMessage codeEmail = ScopelyEmailParser.oneTimeCode(email.body()).isPresent()
-                    ? email
-                    : inbox.waitForMessage(approved, m -> ScopelyEmailParser.oneTimeCode(m.body()).isPresent(), EMAIL_TIMEOUT);
-            signIn.enterCode(ScopelyEmailParser.oneTimeCode(codeEmail.body()).orElseThrow());
+        var code = ScopelyEmailParser.oneTimeCode(email.body());
+        var link = ScopelyEmailParser.signInLink(email.body());
+        if (code.isPresent()) {
+            signIn.enterCode(code.get());
+        } else if (link.isPresent()) {
+            if (!signIn.approveWithLink(link.get())) {
+                throw new IllegalStateException("Email link did not show the Success page");
+            }
+        } else {
+            throw new IllegalStateException("No code or link in email: " + email.subject());
         }
 
         new WebDriverWait(driver, Config.timeout()).until(ExpectedConditions.urlContains("stumbleguys.com"));
+        return newAccount;
     }
 
     private static boolean isScopely(EmailMessage m) {

@@ -51,31 +51,15 @@ public class EmailFlowProbeTest extends BaseTest {
             note("parsed link: " + link.orElse("none"));
             note("parsed code: " + code.orElse("none"));
 
-            boolean codeStep = false;
-            if (link.isPresent()) {
-                Instant approved = Instant.now().minusSeconds(2);
+            if (code.isPresent()) {
+                note("code step shown: " + signIn.isCodeStepShown());
+                signIn.enterCode(code.get());
+                sleep(5);
+                capture("03-after-code");
+            } else if (link.isPresent()) {
                 note("link approved in new tab: " + signIn.approveWithLink(link.get()));
                 sleep(5);
-                capture("03-original-tab-after-link");
-                codeStep = signIn.isCodeStepShown();
-                note("code step shown after link: " + codeStep);
-                if (codeStep && code.isEmpty()) {
-                    try {
-                        code = ScopelyEmailParser.oneTimeCode(saveEmail(inbox, approved, "email-2").body());
-                        note("parsed code from email-2: " + code.orElse("none"));
-                    } catch (IllegalStateException e) {
-                        note("no second email: " + e.getMessage());
-                    }
-                }
-            }
-
-            if (codeStep) {
-                capture("04-code-step");
-                if (code.isPresent()) {
-                    signIn.enterCode(code.get());
-                    sleep(5);
-                    capture("05-after-code");
-                }
+                capture("03-after-link");
             }
 
             sleep(5);
