@@ -1,10 +1,13 @@
 package com.ayusuf.sg.pages;
 
 import com.ayusuf.sg.config.Config;
+import com.ayusuf.sg.support.Artifacts;
 import com.ayusuf.sg.support.ImageMatcher;
 import com.ayusuf.sg.support.ImageMatcher.Match;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
@@ -15,8 +18,10 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -27,7 +32,7 @@ public class GameCanvas extends BasePage {
 
     /** Templates are cut from canvas screenshots scaled to this width. */
     public static final int REF_WIDTH = 880;
-    private static final double MATCH_THRESHOLD = 0.8;
+    private static final double MATCH_THRESHOLD = 0.9;
     private static final Duration LOAD_TIMEOUT = Duration.ofSeconds(90);
 
     private static final By CANVAS = By.cssSelector("canvas#react-unity-webgl-canvas-1");
@@ -51,13 +56,31 @@ public class GameCanvas extends BasePage {
         return this;
     }
 
+    /**
+     * Viewport screenshot cropped to the canvas. Element screenshots make Chrome resize the viewport
+     * for a moment, which re-lays out the page and the game (visible flicker, missed matches).
+     */
     public BufferedImage screenshot() {
-        byte[] png = canvas().getScreenshotAs(OutputType.BYTES);
+        @SuppressWarnings("unchecked")
+        Map<String, Number> r = (Map<String, Number>) ((JavascriptExecutor) driver).executeScript(
+                "const b = arguments[0].getBoundingClientRect();"
+                        + "return {x: b.x, y: b.y, w: b.width, h: b.height, dpr: window.devicePixelRatio};", canvas());
         try {
-            return ImageMatcher.scaleToWidth(ImageIO.read(new ByteArrayInputStream(png)), REF_WIDTH);
+            BufferedImage page = ImageIO.read(new ByteArrayInputStream(
+                    ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES)));
+            double dpr = r.get("dpr").doubleValue();
+            int x = clamp((int) Math.round(r.get("x").doubleValue() * dpr), page.getWidth() - 1);
+            int y = clamp((int) Math.round(r.get("y").doubleValue() * dpr), page.getHeight() - 1);
+            int w = Math.min((int) Math.round(r.get("w").doubleValue() * dpr), page.getWidth() - x);
+            int h = Math.min((int) Math.round(r.get("h").doubleValue() * dpr), page.getHeight() - y);
+            return ImageMatcher.scaleToWidth(page.getSubimage(x, y, w, h), REF_WIDTH);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private static int clamp(int v, int max) {
+        return Math.max(0, Math.min(v, max));
     }
 
     public Optional<Match> find(GameButton button) {
@@ -70,12 +93,17 @@ public class GameCanvas extends BasePage {
 
     public Match waitFor(GameButton button, Duration timeout) {
         Instant deadline = Instant.now().plus(timeout);
+        BufferedImage shot;
+        Match best;
         do {
-            Optional<Match> m = find(button);
-            if (m.isPresent()) return m.get();
+            shot = screenshot();
+            best = ImageMatcher.best(shot, button.image());
+            if (best.score() >= MATCH_THRESHOLD) return best;
             sleep(Duration.ofSeconds(1));
         } while (Instant.now().isBefore(deadline));
-        throw new IllegalStateException(button + " not shown within " + timeout.toSeconds() + "s");
+        Path saved = Artifacts.image("canvas-timeout-" + button.name().toLowerCase(), shot);
+        throw new IllegalStateException(String.format("%s not shown within %ds (best score %.2f, canvas saved to %s)",
+                button, timeout.toSeconds(), best.score(), saved.toAbsolutePath()));
     }
 
     public void click(GameButton button) {
