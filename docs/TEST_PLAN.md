@@ -38,7 +38,20 @@ Out of scope:
 | WGL-01 | Game loads and shows the age gate | Desktop | webgl |
 | WGL-02 | Accepting the age gate reaches the welcome / lobby screen | Desktop | webgl |
 
-Details (steps, expected results) will be added to each case as it's implemented.
+Details are added as each case is implemented.
+
+### AUTH-01 (implemented, `RegisterTest`)
+1. Create a mail.tm inbox
+2. Home -> menu -> Login -> Continue with email -> enter address -> Agree and get sign up link
+3. Open the emailed link in a second tab, wait for "Success", switch back
+4. Expect: back on stumbleguys.com, `idToken` in localStorage, "Almost there" popup, header still logged out
+
+Verified with the probe on desktop Chrome (2026-10-24). No code step for new accounts.
+
+### Returning email (verified with the probe, used by AUTH-02)
+1. Same entry as AUTH-01; no new-account step
+2. Email "[NNNNNN] Your Scopely Account one-time code" -> type into the 6 boxes -> Sign in
+3. Unlinked account: back on stumbleguys.com with "Almost there". Linked account: should be logged in (AUTH-02, needs a linked test account)
 
 ## Risks
 

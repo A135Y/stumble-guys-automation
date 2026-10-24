@@ -1,0 +1,60 @@
+package com.ayusuf.sg.flows;
+
+import com.ayusuf.sg.config.Config;
+import com.ayusuf.sg.email.EmailInbox;
+import com.ayusuf.sg.email.EmailMessage;
+import com.ayusuf.sg.email.ScopelyEmailParser;
+import com.ayusuf.sg.pages.HomePage;
+import com.ayusuf.sg.pages.ScopelySignInPage;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
+import java.time.Instant;
+
+/**
+ * Website sign-in via Scopely ID.
+ * New email: sign-up link, opened in a second tab (the original tab carries on once approved).
+ * Known email: 6-digit code typed into the original tab.
+ */
+public class EmailSignIn {
+
+    private static final Duration EMAIL_TIMEOUT = Duration.ofSeconds(90);
+
+    private final WebDriver driver;
+    private final EmailInbox inbox;
+
+    public EmailSignIn(WebDriver driver, EmailInbox inbox) {
+        this.driver = driver;
+        this.inbox = inbox;
+    }
+
+    /** Returns true if this created a new Scopely account. */
+    public boolean signIn() {
+        ScopelySignInPage signIn = new HomePage(driver).open().openMenu().clickLogin().continueWithEmail();
+
+        Instant sent = Instant.now().minusSeconds(5);
+        boolean newAccount = signIn.submitEmail(inbox.address());
+        EmailMessage email = inbox.waitForMessage(sent, EmailSignIn::isScopely, EMAIL_TIMEOUT);
+
+        var code = ScopelyEmailParser.oneTimeCode(email.body());
+        var link = ScopelyEmailParser.signInLink(email.body());
+        if (code.isPresent()) {
+            signIn.enterCode(code.get());
+        } else if (link.isPresent()) {
+            if (!signIn.approveWithLink(link.get())) {
+                throw new IllegalStateException("Email link did not show the Success page");
+            }
+        } else {
+            throw new IllegalStateException("No code or link in email: " + email.subject());
+        }
+
+        new WebDriverWait(driver, Config.timeout()).until(ExpectedConditions.urlContains("stumbleguys.com"));
+        return newAccount;
+    }
+
+    private static boolean isScopely(EmailMessage m) {
+        return m.from().toLowerCase().contains("scopely") || m.body().contains("id.scopely.com");
+    }
+}

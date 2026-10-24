@@ -1,0 +1,8 @@
+Sign in to your Scopely Account
+
+Open this link to sign in:
+https://id.scopely.com/email/verify/abc123?token=TESTTOKEN
+
+Your verification code is 104857
+
+Order no. 999999 is not a code.

@@ -19,6 +19,7 @@
         <assertj.version>3.27.3</assertj.version>
         <dotenv.version>3.2.0</dotenv.version>
         <slf4j.version>2.0.17</slf4j.version>
+        <jackson.version>2.19.0</jackson.version>
 
         <!-- overridden by profiles -->
         <platform>desktop</platform>
@@ -40,6 +41,11 @@
             <groupId>io.github.cdimascio</groupId>
             <artifactId>dotenv-java</artifactId>
             <version>${dotenv.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

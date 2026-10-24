@@ -21,4 +21,10 @@ public class HomePageSmokeTest extends BaseTest {
 
         assertThat(home.isLoginButtonVisible()).as("Login button visible").isTrue();
     }
+
+    public void continueWithEmailOpensScopelySignIn() {
+        new HomePage(driver).open().openMenu().clickLogin().continueWithEmail();
+
+        assertThat(driver.getCurrentUrl()).contains("id.scopely.com").contains("prompt=login");
+    }
 }

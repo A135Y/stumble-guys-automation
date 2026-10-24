@@ -3,6 +3,7 @@ package com.ayusuf.sg.pages;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.SearchContext;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -25,6 +26,7 @@ public class CookieBanner extends BasePage {
         try {
             WebElement deny = new WebDriverWait(driver, Duration.ofSeconds(8))
                     .ignoring(NoSuchElementException.class)
+                    .ignoring(StaleElementReferenceException.class)
                     .until(d -> {
                         SearchContext root = d.findElement(HOST).getShadowRoot();
                         WebElement btn = root.findElement(DENY);
@@ -40,7 +42,7 @@ public class CookieBanner extends BasePage {
     private boolean isBannerShown() {
         try {
             return driver.findElement(HOST).getShadowRoot().findElement(DENY).isDisplayed();
-        } catch (NoSuchElementException e) {
+        } catch (NoSuchElementException | StaleElementReferenceException e) {
             return false;
         }
     }
