@@ -2,6 +2,7 @@ package com.ayusuf.sg.driver;
 
 import com.ayusuf.sg.config.Config;
 import com.ayusuf.sg.config.Platform;
+import com.ayusuf.sg.support.CursorOverlay;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.android.options.UiAutomator2Options;
 import org.openqa.selenium.Dimension;
@@ -33,6 +34,7 @@ public final class DriverFactory {
 
         ChromeDriver driver = new ChromeDriver(options);
         driver.manage().window().setSize(new Dimension(Config.getInt("window.width"), Config.getInt("window.height")));
+        if (Config.getBool("show.cursor")) CursorOverlay.install(driver);
         return driver;
     }
 

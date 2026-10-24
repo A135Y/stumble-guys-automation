@@ -2,6 +2,7 @@ package com.ayusuf.sg.pages;
 
 import com.ayusuf.sg.config.Config;
 import com.ayusuf.sg.support.Artifacts;
+import com.ayusuf.sg.support.CursorOverlay;
 import com.ayusuf.sg.support.ImageMatcher;
 import com.ayusuf.sg.support.ImageMatcher.Match;
 import org.openqa.selenium.By;
@@ -65,6 +66,7 @@ public class GameCanvas extends BasePage {
         Map<String, Number> r = (Map<String, Number>) ((JavascriptExecutor) driver).executeScript(
                 "const b = arguments[0].getBoundingClientRect();"
                         + "return {x: b.x, y: b.y, w: b.width, h: b.height, dpr: window.devicePixelRatio};", canvas());
+        CursorOverlay.setVisible(driver, false);
         try {
             BufferedImage page = ImageIO.read(new ByteArrayInputStream(
                     ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES)));
@@ -76,6 +78,8 @@ public class GameCanvas extends BasePage {
             return ImageMatcher.scaleToWidth(page.getSubimage(x, y, w, h), REF_WIDTH);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        } finally {
+            CursorOverlay.setVisible(driver, true);
         }
     }
 
