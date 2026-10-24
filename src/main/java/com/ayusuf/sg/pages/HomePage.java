@@ -2,6 +2,7 @@ package com.ayusuf.sg.pages;
 
 import com.ayusuf.sg.config.Config;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 
 public class HomePage extends BasePage {
@@ -38,7 +39,22 @@ public class HomePage extends BasePage {
         return waitUntilVisible(LOGIN_BUTTON);
     }
 
+    public LoginModal clickLogin() {
+        click(LOGIN_BUTTON);
+        return new LoginModal(driver);
+    }
+
     public boolean isLoggedOut() {
         return !driver.findElements(LOGGED_OUT_ICON).isEmpty();
+    }
+
+    public boolean hasScopelyToken() {
+        return (Boolean) ((JavascriptExecutor) driver)
+                .executeScript("return localStorage.getItem('com.scopely:scopelyid:idToken') !== null");
+    }
+
+    public boolean isLoggedIn() {
+        visible(MENU_BUTTON);
+        return !isLoggedOut();
     }
 }

@@ -10,6 +10,8 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.time.Duration;
+
 public abstract class BasePage {
 
     protected final WebDriver driver;
@@ -35,8 +37,12 @@ public abstract class BasePage {
     }
 
     protected boolean waitUntilVisible(By locator) {
+        return waitUntilVisible(locator, Config.timeout());
+    }
+
+    protected boolean waitUntilVisible(By locator, Duration timeout) {
         try {
-            visible(locator);
+            new WebDriverWait(driver, timeout).until(ExpectedConditions.visibilityOfElementLocated(locator));
             return true;
         } catch (TimeoutException e) {
             return false;
