@@ -4,6 +4,8 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -27,6 +29,17 @@ public final class Artifacts {
 
     public static Path pageSource(WebDriver driver, String name) {
         return text(name + ".html", driver.getPageSource());
+    }
+
+    public static Path image(String name, BufferedImage img) {
+        try {
+            Files.createDirectories(RUN_DIR);
+            Path file = RUN_DIR.resolve(name + ".png");
+            ImageIO.write(img, "png", file.toFile());
+            return file;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public static Path text(String fileName, String content) {
