@@ -38,7 +38,17 @@ public class HomePage extends BasePage {
         return waitUntilVisible(LOGIN_BUTTON);
     }
 
+    public LoginModal clickLogin() {
+        click(LOGIN_BUTTON);
+        return new LoginModal(driver);
+    }
+
     public boolean isLoggedOut() {
         return !driver.findElements(LOGGED_OUT_ICON).isEmpty();
+    }
+
+    public boolean isLoggedIn() {
+        visible(MENU_BUTTON);
+        return !isLoggedOut();
     }
 }
