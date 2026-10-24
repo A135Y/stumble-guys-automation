@@ -2,7 +2,19 @@
 
 Automated tests for the Stumble Guys web portal (https://www.stumbleguys.com/), running on desktop Chrome and Chrome on Android.
 
-> Work in progress. Setup and run instructions will be added once the framework is in place.
+> Work in progress.
+
+## Running
+
+Needs JDK 21 and Chrome.
+
+```bash
+./mvnw test                      # unit + smoke, desktop Chrome
+./mvnw test -Dheadless=true
+./mvnw test -Pandroid            # Chrome on Android (needs Appium + emulator, setup TBD)
+```
+
+Config: copy `.env.example` to `.env`, or pass `-Dkey=value`.
 
 ## Scope
 
