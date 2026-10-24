@@ -22,40 +22,50 @@ public final class ImageMatcher {
 
     /** Best match centre in haystack pixels, if the score reaches {@code threshold} (0..1). */
     public static Optional<Match> find(BufferedImage haystack, BufferedImage needle, double threshold) {
-        float[][] h = gray(haystack, STEP);
-        float[][] n = gray(needle, STEP);
-        int nh = n.length, nw = n[0].length;
-        if (nh > h.length || nw > h[0].length) return Optional.empty();
+        Match m = best(haystack, needle);
+        return m.score() >= threshold ? Optional.of(m) : Optional.empty();
+    }
 
+    /** Best match whatever its score; score is -1 if nothing could be compared. */
+    public static Match best(BufferedImage haystack, BufferedImage needle) {
+        float[][] n = gray(needle, STEP, 0, 0);
+        int nh = n.length, nw = n[0].length;
         double nMean = mean(n, 0, 0, nw, nh);
         double nVar = 0;
         for (float[] row : n) for (float v : row) nVar += (v - nMean) * (v - nMean);
-        if (nVar == 0) return Optional.empty();
+        if (nVar == 0) return new Match(0, 0, -1);
 
-        double best = -1;
-        int bx = 0, by = 0;
-        for (int y = 0; y + nh <= h.length; y++) {
-            for (int x = 0; x + nw <= h[0].length; x++) {
-                double hMean = mean(h, x, y, nw, nh);
-                double cov = 0, hVar = 0;
-                for (int j = 0; j < nh; j++) {
-                    for (int i = 0; i < nw; i++) {
-                        double hv = h[y + j][x + i] - hMean;
-                        cov += hv * (n[j][i] - nMean);
-                        hVar += hv * hv;
+        // try every alignment of the downsampling grid, otherwise a template cut at an odd pixel scores low
+        Match best = new Match(0, 0, -1);
+        for (int py = 0; py < STEP; py++) {
+            for (int px = 0; px < STEP; px++) {
+                float[][] h = gray(haystack, STEP, px, py);
+                if (nh > h.length || nw > h[0].length) continue;
+                for (int y = 0; y + nh <= h.length; y++) {
+                    for (int x = 0; x + nw <= h[0].length; x++) {
+                        double score = ncc(h, x, y, n, nMean, nVar);
+                        if (score > best.score()) {
+                            best = new Match(x * STEP + px + nw * STEP / 2.0, y * STEP + py + nh * STEP / 2.0, score);
+                        }
                     }
-                }
-                if (hVar == 0) continue;
-                double score = cov / Math.sqrt(hVar * nVar);
-                if (score > best) {
-                    best = score;
-                    bx = x;
-                    by = y;
                 }
             }
         }
-        if (best < threshold) return Optional.empty();
-        return Optional.of(new Match((bx + nw / 2.0) * STEP, (by + nh / 2.0) * STEP, best));
+        return best;
+    }
+
+    private static double ncc(float[][] h, int x, int y, float[][] n, double nMean, double nVar) {
+        int nh = n.length, nw = n[0].length;
+        double hMean = mean(h, x, y, nw, nh);
+        double cov = 0, hVar = 0;
+        for (int j = 0; j < nh; j++) {
+            for (int i = 0; i < nw; i++) {
+                double hv = h[y + j][x + i] - hMean;
+                cov += hv * (n[j][i] - nMean);
+                hVar += hv * hv;
+            }
+        }
+        return hVar == 0 ? -1 : cov / Math.sqrt(hVar * nVar);
     }
 
     public static BufferedImage scaleToWidth(BufferedImage src, int width) {
@@ -78,13 +88,20 @@ public final class ImageMatcher {
         }
     }
 
-    private static float[][] gray(BufferedImage img, int step) {
-        int w = img.getWidth() / step, h = img.getHeight() / step;
+    /** Downsamples by averaging step x step blocks, so a 1px shift between captures barely changes the result. */
+    private static float[][] gray(BufferedImage img, int step, int offsetX, int offsetY) {
+        int w = (img.getWidth() - offsetX) / step, h = (img.getHeight() - offsetY) / step;
         float[][] g = new float[h][w];
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
-                int rgb = img.getRGB(x * step, y * step);
-                g[y][x] = 0.299f * ((rgb >> 16) & 0xff) + 0.587f * ((rgb >> 8) & 0xff) + 0.114f * (rgb & 0xff);
+                float sum = 0;
+                for (int j = 0; j < step; j++) {
+                    for (int i = 0; i < step; i++) {
+                        int rgb = img.getRGB(offsetX + x * step + i, offsetY + y * step + j);
+                        sum += 0.299f * ((rgb >> 16) & 0xff) + 0.587f * ((rgb >> 8) & 0xff) + 0.114f * (rgb & 0xff);
+                    }
+                }
+                g[y][x] = sum / (step * step);
             }
         }
         return g;
