@@ -5,6 +5,7 @@ import org.openqa.selenium.Keys;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.WindowType;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -20,7 +21,8 @@ public class ScopelySignInPage extends BasePage {
     private static final By TITLE = By.cssSelector("h1.title");
     private static final By CODE_INPUTS = By.cssSelector(
             "input[autocomplete='one-time-code'], input[name*='code' i], input[inputmode='numeric']");
-    private static final By ERROR = By.cssSelector("[role='alert'], .ant-form-item-explain-error");
+    private static final By VERIFY_SUCCESS = By.xpath("//h2[contains(.,'Success')]");
+    private static final By ERROR =By.cssSelector("[role='alert'], .ant-form-item-explain-error");
 
     public ScopelySignInPage(WebDriver driver) {
         super(driver);
@@ -54,6 +56,22 @@ public class ScopelySignInPage extends BasePage {
 
     public String title() {
         return driver.findElements(TITLE).stream().map(WebElement::getText).findFirst().orElse("");
+    }
+
+    /**
+     * Opens the email link in a new tab, waits for "Success", then returns to this tab.
+     * Opening it in this tab would replace the page that's waiting for the approval.
+     */
+    public boolean approveWithLink(String link) {
+        String original = driver.getWindowHandle();
+        driver.switchTo().newWindow(WindowType.TAB);
+        try {
+            driver.get(link);
+            return waitUntilVisible(VERIFY_SUCCESS);
+        } finally {
+            driver.close();
+            driver.switchTo().window(original);
+        }
     }
 
     public boolean isCodeStepShown() {

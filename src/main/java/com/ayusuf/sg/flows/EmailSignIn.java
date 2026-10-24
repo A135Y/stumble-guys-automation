@@ -15,7 +15,7 @@ import java.time.Instant;
 
 /**
  * Website sign-in: email -> link and/or code from the inbox -> back on stumbleguys.com.
- * The link is opened in the same driver session, since the PKCE verifier lives in this browser's localStorage.
+ * The link is opened in a second tab of the same browser; the original tab carries on once it's approved.
  */
 public class EmailSignIn {
 
@@ -36,14 +36,18 @@ public class EmailSignIn {
         signIn.submitEmail(inbox.address());
         EmailMessage email = inbox.waitForMessage(sent, EmailSignIn::isScopely, EMAIL_TIMEOUT);
 
-        var link = ScopelyEmailParser.signInLink(email.body());
-        if (link.isPresent() && !signIn.isCodeStepShown()) {
-            driver.get(link.get());
+        Instant approved = Instant.now().minusSeconds(2);
+        String link = ScopelyEmailParser.signInLink(email.body())
+                .orElseThrow(() -> new IllegalStateException("No sign-in link in email: " + email.subject()));
+        if (!signIn.approveWithLink(link)) {
+            throw new IllegalStateException("Email link did not show the Success page");
         }
+
         if (signIn.isCodeStepShown()) {
-            String code = ScopelyEmailParser.oneTimeCode(email.body())
-                    .orElseThrow(() -> new IllegalStateException("No code in email: " + email.subject()));
-            signIn.enterCode(code);
+            EmailMessage codeEmail = ScopelyEmailParser.oneTimeCode(email.body()).isPresent()
+                    ? email
+                    : inbox.waitForMessage(approved, m -> ScopelyEmailParser.oneTimeCode(m.body()).isPresent(), EMAIL_TIMEOUT);
+            signIn.enterCode(ScopelyEmailParser.oneTimeCode(codeEmail.body()).orElseThrow());
         }
 
         new WebDriverWait(driver, Config.timeout()).until(ExpectedConditions.urlContains("stumbleguys.com"));

@@ -17,7 +17,7 @@ Signing up / logging in on stumbleguys.com with email never seemed to actually l
    ```
 3. There's no separate register page. The sign-in page says "Sign in or create a Scopely Account" and only asks for an email. No passwords.
 4. If the email has no Scopely account yet, an extra step appears: "Let's create a Scopely Account!" with an optional marketing checkbox and an **"Agree and get sign up link"** button (accepts the ToS). No email is sent until that's clicked. Found when the first mail.tm probe run sat waiting for an email that was never sent.
-5. You get an email: accept the link, then enter the one-time code.
+5. You get an email from `noreply-identity@scopely.com` with a link (`/email/verify?token=...`, expires in 5 minutes). Opening it shows "Success! Return to the original tab or window" - the link only approves the sign-in. The **original tab** that submitted the email is the one that continues. Opening the link in that same tab replaces the waiting page and the flow dies ("The page has timed out"). Tests open it in a second tab of the same browser, then switch back.
 6. Scopely redirects back to `https://www.stumbleguys.com/?code=...&state=...` and the site exchanges the code for tokens.
 
 Things stored in `localStorage` on stumbleguys.com:
