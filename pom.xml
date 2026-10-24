@@ -22,7 +22,7 @@
 
         <!-- overridden by profiles -->
         <platform>desktop</platform>
-        <groups>smoke</groups>
+        <groups>unit,smoke</groups>
     </properties>
 
     <dependencies>
