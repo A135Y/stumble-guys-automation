@@ -8,7 +8,9 @@ import java.awt.image.BufferedImage;
 public enum GameButton {
     WELCOME_TITLE("welcome-title"),
     WELCOME_START_PLAYING("welcome-start-playing"),
-    WELCOME_CONTINUE_WITH_EMAIL("welcome-continue-with-email");
+    WELCOME_CONTINUE_WITH_EMAIL("welcome-continue-with-email"),
+    AGE_TITLE("age-title"),
+    AGE_ACCEPT("age-accept");
 
     private final String file;
     private BufferedImage image;

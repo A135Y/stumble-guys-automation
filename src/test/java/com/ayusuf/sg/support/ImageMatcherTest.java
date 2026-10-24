@@ -34,6 +34,17 @@ public class ImageMatcherTest {
         assertThat(ImageMatcher.find(canvas, TITLE, 0.8)).isPresent();
     }
 
+    public void tellsAgeGateAndWelcomeApart() {
+        BufferedImage age = ImageMatcher.load("/game/age-gate-880.png");
+        BufferedImage welcome = ImageMatcher.load("/game/welcome-880.png");
+        BufferedImage ageTitle = ImageMatcher.load("/game/age-title.png");
+
+        assertThat(ImageMatcher.find(age, ageTitle, 0.8)).isPresent();
+        assertThat(ImageMatcher.find(age, ImageMatcher.load("/game/age-accept.png"), 0.8)).isPresent();
+        assertThat(ImageMatcher.find(welcome, ageTitle, 0.8)).isEmpty();
+        assertThat(ImageMatcher.find(age, TITLE, 0.8)).isEmpty();
+    }
+
     public void noMatchWhenButtonIsGone() {
         BufferedImage canvas = copy(ImageMatcher.load("/game/welcome-880.png"));
         Graphics2D g = canvas.createGraphics();
