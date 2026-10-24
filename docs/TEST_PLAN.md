@@ -38,7 +38,15 @@ Out of scope:
 | WGL-01 | Game loads and shows the age gate | Desktop | webgl |
 | WGL-02 | Accepting the age gate reaches the welcome / lobby screen | Desktop | webgl |
 
-Details (steps, expected results) will be added to each case as it's implemented.
+Details are added as each case is implemented.
+
+### AUTH-01 (implemented, `RegisterTest`)
+1. Create a mail.tm inbox
+2. Home -> menu -> Login -> Continue with email -> enter address -> Agree and get sign up link
+3. Open the emailed link in a second tab, wait for "Success", switch back
+4. Expect: back on stumbleguys.com, `idToken` in localStorage, "Almost there" popup, header still logged out
+
+Verified with the probe on desktop Chrome (2026-10-24). No code step for new accounts.
 
 ## Risks
 

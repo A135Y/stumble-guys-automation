@@ -16,10 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * One-off exploration of the real email + code flow with a mail.tm inbox.
- * Creates real accounts, so it only runs with -Dgroups=probe. Output goes to target/artifacts/.
- */
+/** Exploration of the real email flow. Creates real accounts, so only runs with -Dgroups=probe. */
 @Test(groups = "probe")
 public class EmailFlowProbeTest extends BaseTest {
 
@@ -28,7 +25,11 @@ public class EmailFlowProbeTest extends BaseTest {
     private final List<String> log = new ArrayList<>();
 
     public void probeEmailSignIn() {
-        MailTmInbox inbox = MailTmInbox.create();
+        // -Dprobe.address=... -Dprobe.password=... reuses an inbox (returning user); otherwise a new one
+        String address = System.getProperty("probe.address");
+        MailTmInbox inbox = address == null
+                ? MailTmInbox.create()
+                : MailTmInbox.existing(address, System.getProperty("probe.password"));
         Artifacts.text("inbox.properties", "address=" + inbox.address() + "\npassword=" + inbox.password() + "\n");
         note("inbox: " + inbox.address());
 
