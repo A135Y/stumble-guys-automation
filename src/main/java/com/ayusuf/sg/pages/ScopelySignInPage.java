@@ -22,6 +22,7 @@ public class ScopelySignInPage extends BasePage {
     // one box per digit; there's also a hidden Okta "credentials.passcode" input to avoid
     private static final By CODE_INPUTS = By.cssSelector("input[class*='OneTimeCodeInput_oneTimeCodeInput']");
     private static final By CODE_SUBMIT = By.cssSelector("button[class*='OneTimeCodeInput_submitButton']");
+    private static final By CHECK_INBOX = By.xpath("//*[self::h1 or self::h2][contains(.,'Check your inbox')]");
     private static final By VERIFY_SUCCESS = By.xpath("//h2[contains(.,'Success')]");
     private static final By ERROR = By.cssSelector("[role='alert'], .ant-form-item-explain-error");
 
@@ -37,20 +38,37 @@ public class ScopelySignInPage extends BasePage {
 
     /** Submits the email and accepts the sign-up step if Scopely doesn't know it. Returns true for a new account. */
     public boolean submitEmail(String email) {
-        // retried: with an existing Scopely session the page can re-render and wipe the field
+        // retried: with an existing Scopely session the page can reload and wipe the field mid-submit
         for (int attempt = 1; attempt <= 3; attempt++) {
-            String before = title();
             if (!typeEmail(email)) continue;
             click(SUBMIT);
-            if (waitForTitleChange(before) || !driver.findElements(CODE_INPUTS).isEmpty()) {
-                if (isNewAccountStep()) {
-                    click(SUBMIT);
-                    return true;
-                }
-                return false;
+            if (!waitForNextStep()) continue;
+            if (isNewAccountStep()) {
+                click(SUBMIT);
+                return true;
             }
+            return false;
         }
         throw new IllegalStateException("Email step didn't move on after 3 attempts");
+    }
+
+    /** True once a real next step shows; a reload alone (heading briefly missing) doesn't count. */
+    private boolean waitForNextStep() {
+        try {
+            new WebDriverWait(driver, Duration.ofSeconds(15)).ignoring(StaleElementReferenceException.class).until(d ->
+                    isNewAccountStep() || isDisplayed(CODE_INPUTS) || isDisplayed(CHECK_INBOX));
+            return true;
+        } catch (TimeoutException e) {
+            return false;
+        }
+    }
+
+    private boolean isDisplayed(By locator) {
+        try {
+            return driver.findElements(locator).stream().anyMatch(WebElement::isDisplayed);
+        } catch (StaleElementReferenceException e) {
+            return false;
+        }
     }
 
     private boolean typeEmail(String email) {
@@ -108,14 +126,5 @@ public class ScopelySignInPage extends BasePage {
 
     public String errorText() {
         return waitUntilVisible(ERROR) ? driver.findElement(ERROR).getText() : "";
-    }
-
-    private boolean waitForTitleChange(String before) {
-        try {
-            new WebDriverWait(driver, Duration.ofSeconds(10)).until(d -> !title().equals(before));
-            return true;
-        } catch (TimeoutException e) {
-            return false;
-        }
     }
 }
