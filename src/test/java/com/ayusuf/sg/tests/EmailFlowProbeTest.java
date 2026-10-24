@@ -37,7 +37,7 @@ public class EmailFlowProbeTest extends BaseTest {
             capture("01-email-step");
 
             Instant sent = Instant.now().minusSeconds(5);
-            signIn.submitEmail(inbox.address());
+            note("new account step accepted: " + signIn.submitEmail(inbox.address()));
             sleep(3);
             capture("02-after-submit");
 

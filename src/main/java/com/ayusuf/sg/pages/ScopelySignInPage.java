@@ -2,21 +2,25 @@ package com.ayusuf.sg.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 import java.util.List;
 
-/** id.scopely.com: email step and one-time code step. */
+/** id.scopely.com: email step, new-account step and one-time code step. */
 public class ScopelySignInPage extends BasePage {
 
-    private static final By EMAIL = By.cssSelector("input[placeholder='your.email@example.com'], input[type='email'], input[name='identifier']");
-    private static final By CONTINUE = By.xpath("//button[normalize-space(.)='Continue']");
+    private static final By EMAIL = By.cssSelector("input[name='email']");
+    // "Continue" on the email step, "Agree and get sign up link" on the new-account step
+    private static final By SUBMIT = By.cssSelector("button[data-test-id='site-email-input-submit-button']");
+    private static final By TITLE = By.cssSelector("h1.title");
     private static final By CODE_INPUTS = By.cssSelector(
             "input[autocomplete='one-time-code'], input[name*='code' i], input[inputmode='numeric']");
-    private static final By ERROR = By.cssSelector("[role='alert'], .o-form-error-container, .okta-form-infobox-error");
+    private static final By ERROR = By.cssSelector("[role='alert'], .ant-form-item-explain-error");
 
     public ScopelySignInPage(WebDriver driver) {
         super(driver);
@@ -28,12 +32,28 @@ public class ScopelySignInPage extends BasePage {
         return this;
     }
 
-    public ScopelySignInPage submitEmail(String email) {
+    /** Submits the email and accepts the sign-up step if Scopely doesn't know it. Returns true for a new account. */
+    public boolean submitEmail(String email) {
+        String before = title();
         WebElement field = visible(EMAIL);
         field.clear();
         field.sendKeys(email);
-        click(CONTINUE);
-        return this;
+        click(SUBMIT);
+
+        waitForTitleChange(before);
+        if (isNewAccountStep()) {
+            click(SUBMIT);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isNewAccountStep() {
+        return title().toLowerCase().contains("create a scopely account");
+    }
+
+    public String title() {
+        return driver.findElements(TITLE).stream().map(WebElement::getText).findFirst().orElse("");
     }
 
     public boolean isCodeStepShown() {
@@ -49,8 +69,8 @@ public class ScopelySignInPage extends BasePage {
         } else {
             inputs.getFirst().sendKeys(code);
         }
-        if (driver.findElements(CONTINUE).stream().anyMatch(WebElement::isDisplayed)) {
-            click(CONTINUE);
+        if (driver.findElements(SUBMIT).stream().anyMatch(WebElement::isDisplayed)) {
+            click(SUBMIT);
         } else {
             inputs.getLast().sendKeys(Keys.ENTER);
         }
@@ -58,5 +78,14 @@ public class ScopelySignInPage extends BasePage {
 
     public String errorText() {
         return waitUntilVisible(ERROR) ? driver.findElement(ERROR).getText() : "";
+    }
+
+    private void waitForTitleChange(String before) {
+        try {
+            new WebDriverWait(driver, Duration.ofSeconds(10))
+                    .until(d -> !title().equals(before));
+        } catch (TimeoutException ignored) {
+            // some steps keep the same heading
+        }
     }
 }

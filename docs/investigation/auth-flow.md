@@ -16,8 +16,9 @@ Signing up / logging in on stumbleguys.com with email never seemed to actually l
      &redirect_uri=https://www.stumbleguys.com&code_challenge_method=S256&prompt=login
    ```
 3. There's no separate register page. The sign-in page says "Sign in or create a Scopely Account" and only asks for an email. No passwords.
-4. You get an email: accept the link, then enter the one-time code.
-5. Scopely redirects back to `https://www.stumbleguys.com/?code=...&state=...` and the site exchanges the code for tokens.
+4. If the email has no Scopely account yet, an extra step appears: "Let's create a Scopely Account!" with an optional marketing checkbox and an **"Agree and get sign up link"** button (accepts the ToS). No email is sent until that's clicked. Found when the first mail.tm probe run sat waiting for an email that was never sent.
+5. You get an email: accept the link, then enter the one-time code.
+6. Scopely redirects back to `https://www.stumbleguys.com/?code=...&state=...` and the site exchanges the code for tokens.
 
 Things stored in `localStorage` on stumbleguys.com:
 
@@ -63,3 +64,13 @@ Linking on its own doesn't update an existing website session. You have to log i
 - Login test: uses an account that's already linked.
 - Each platform (desktop / Android) needs its own linked account, or tests run one after another.
 - Fresh browser profile per test so old verifiers/tokens don't leak between runs.
+
+## Selectors (id.scopely.com)
+
+The Scopely pages have `data-test-id` attributes, which are more stable than the generated class names:
+
+| Element | Selector |
+|---|---|
+| Email field | `input[name='email']` |
+| Continue / Agree and get sign up link | `button[data-test-id='site-email-input-submit-button']` (same button on both steps) |
+| Step heading | `h1.title` ("Let's get you in!" / "Let's create a Scopely Account!") |
