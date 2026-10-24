@@ -48,6 +48,11 @@ Details are added as each case is implemented.
 
 Verified with the probe on desktop Chrome (2026-10-24). No code step for new accounts.
 
+### Returning email (verified with the probe, used by AUTH-02)
+1. Same entry as AUTH-01; no new-account step
+2. Email "[NNNNNN] Your Scopely Account one-time code" -> type into the 6 boxes -> Sign in
+3. Unlinked account: back on stumbleguys.com with "Almost there". Linked account: should be logged in (AUTH-02, needs a linked test account)
+
 ## Risks
 
 | Risk | Mitigation |
