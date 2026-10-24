@@ -7,7 +7,6 @@ import com.ayusuf.sg.email.ScopelyEmailParser;
 import com.ayusuf.sg.pages.HomePage;
 import com.ayusuf.sg.pages.ScopelySignInPage;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
@@ -34,7 +33,8 @@ public class EmailSignIn {
     public boolean signIn() {
         ScopelySignInPage page = new HomePage(driver).open().openMenu().clickLogin().continueWithEmail();
         boolean newAccount = complete(page);
-        new WebDriverWait(driver, Config.timeout()).until(ExpectedConditions.urlContains("stumbleguys.com"));
+        // not urlContains: the Scopely URL carries redirect_uri=https://www.stumbleguys.com in its query
+        new WebDriverWait(driver, Duration.ofSeconds(30)).until(d -> d.getCurrentUrl().startsWith(Config.baseUrl()));
         return newAccount;
     }
 
