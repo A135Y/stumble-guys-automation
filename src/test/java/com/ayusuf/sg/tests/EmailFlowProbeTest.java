@@ -10,11 +10,16 @@ import com.ayusuf.sg.support.Artifacts;
 import org.openqa.selenium.JavascriptExecutor;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 
 /** Exploration of the real email flow. Creates real accounts, so only runs with -Dgroups=probe. */
 @Test(groups = "probe")
@@ -25,11 +30,9 @@ public class EmailFlowProbeTest extends BaseTest {
     private final List<String> log = new ArrayList<>();
 
     public void probeEmailSignIn() {
-        // -Dprobe.address=... -Dprobe.password=... reuses an inbox (returning user); otherwise a new one
-        String address = System.getProperty("probe.address");
-        MailTmInbox inbox = address == null
-                ? MailTmInbox.create()
-                : MailTmInbox.existing(address, System.getProperty("probe.password"));
+        // -Dprobe.inbox=path/to/inbox.properties reuses an inbox (returning user); otherwise a new one
+        String saved = System.getProperty("probe.inbox");
+        MailTmInbox inbox = saved == null ? MailTmInbox.create() : loadInbox(Path.of(saved));
         Artifacts.text("inbox.properties", "address=" + inbox.address() + "\npassword=" + inbox.password() + "\n");
         note("inbox: " + inbox.address());
 
@@ -84,6 +87,16 @@ public class EmailFlowProbeTest extends BaseTest {
             Artifacts.text("summary.txt", String.join("\n", log) + "\n");
             System.out.println("Probe output: " + Artifacts.RUN_DIR.toAbsolutePath());
         }
+    }
+
+    private static MailTmInbox loadInbox(Path file) {
+        Properties p = new Properties();
+        try (var in = Files.newInputStream(file)) {
+            p.load(in);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Can't read " + file.toAbsolutePath(), e);
+        }
+        return MailTmInbox.existing(p.getProperty("address"), p.getProperty("password"));
     }
 
     private EmailMessage saveEmail(MailTmInbox inbox, Instant since, String name) {
