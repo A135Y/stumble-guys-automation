@@ -20,6 +20,14 @@ public class ScopelyEmailParserTest {
         assertThat(ScopelyEmailParser.oneTimeCode(html)).isEmpty();
     }
 
+    public void realSignInEmailHasCodeAndNoLink() {
+        String html = load("scopely-signin-code.html");
+
+        assertThat(ScopelyEmailParser.oneTimeCode(html)).contains("123456");
+        assertThat(ScopelyEmailParser.oneTimeCode(load("scopely-signin-code.txt"))).contains("123456");
+        assertThat(ScopelyEmailParser.signInLink(html)).isEmpty();
+    }
+
     public void findsSignInLinkInHtml() {
         assertThat(ScopelyEmailParser.signInLink(load("synthetic-signin.html")))
                 .contains("https://id.scopely.com/email/verify/abc123?token=TESTTOKEN&state=xyz");
