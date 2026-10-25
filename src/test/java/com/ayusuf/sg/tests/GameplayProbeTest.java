@@ -20,9 +20,9 @@ import java.util.List;
 @Test(groups = "probe")
 public class GameplayProbeTest extends BaseTest {
 
-    // where PLAY! sits in the lobby artwork shown on the website ("Almost there"); a guess until captured
-    private static final double PLAY_X = 0.877;
-    private static final double PLAY_Y = 0.88;
+    // PLAY sits bottom-right of the lobby (seen dimmed behind a promo popup); position until it has an image
+    private static final double PLAY_X = 0.886;
+    private static final double PLAY_Y = 0.93;
 
     private final List<String> log = new ArrayList<>();
 
@@ -36,14 +36,21 @@ public class GameplayProbeTest extends BaseTest {
             game.click(GameButton.DOWNLOAD_OK);
             StepTimer.step("download started");
 
-            BufferedImage lobby = waitUntilStable(game, "p01-download", Duration.ofMinutes(10));
-            StepTimer.step("screen stable (lobby?)");
-            Artifacts.image("p02-lobby", lobby);
+            waitUntilStable(game, "p01-download", Duration.ofMinutes(10));
+            StepTimer.step("screen stable");
+            int closed = game.dismissPopups();
+            sleep(5);
+            closed += game.dismissPopups();
+            note("popups closed: " + closed);
+            Artifacts.image("p02-lobby", game.screenshot());
+            StepTimer.step("lobby clear");
 
             game.clickAt(PLAY_X, PLAY_Y);
             note("clicked estimated PLAY! position");
             for (int i = 1; i <= 12; i++) {
                 sleep(5);
+                int popups = game.dismissPopups();
+                if (popups > 0) note("closed " + popups + " popup(s) after Play");
                 canvas(game, "p03-after-play-" + i);
             }
             StepTimer.step("watched 60s after Play");
@@ -51,7 +58,7 @@ public class GameplayProbeTest extends BaseTest {
             game.clickAt(0.5, 0.5);
             BufferedImage before = game.screenshot();
             Artifacts.image("p04-before-keys", before);
-            game.holdKey("w", Duration.ofSeconds(2));
+            game.holdKey("w", Duration.ofSeconds(3));
             BufferedImage afterW = game.screenshot();
             Artifacts.image("p05-after-w", afterW);
             game.holdKey(Keys.SPACE, Duration.ofMillis(300));

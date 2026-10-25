@@ -12,7 +12,8 @@ public enum GameButton {
     AGE_TITLE("age-title"),
     AGE_ACCEPT("age-accept"),
     DOWNLOAD_TITLE("download-title"),
-    DOWNLOAD_OK("download-ok");
+    DOWNLOAD_OK("download-ok"),
+    POPUP_CLOSE("popup-close");
 
     private final String file;
     private BufferedImage image;

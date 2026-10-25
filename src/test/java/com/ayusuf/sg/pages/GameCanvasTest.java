@@ -26,6 +26,13 @@ public class GameCanvasTest {
         assertThat(score(load("age-gate-25-880"), GameButton.DOWNLOAD_OK)).isLessThan(0.9);
     }
 
+    public void popupCloseFoundOnlyOnPopups() {
+        assertThat(score(load("promo-popup-880"), GameButton.POPUP_CLOSE)).isGreaterThan(0.95);
+        for (String other : new String[]{"welcome-880", "welcome-920", "age-gate-880", "age-gate-25-880", "download-assets-880"}) {
+            assertThat(score(load(other), GameButton.POPUP_CLOSE)).as(other).isLessThan(0.9);
+        }
+    }
+
     private static double score(BufferedImage canvas, GameButton button) {
         return ImageMatcher.best(canvas, button.image()).score();
     }

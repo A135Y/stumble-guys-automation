@@ -202,6 +202,17 @@ public class GameCanvas extends BasePage {
         }
     }
 
+    /** Closes promo popups (blue square X) until none is left; they can queue up. Returns how many. */
+    public int dismissPopups() {
+        int closed = 0;
+        while (closed < 5 && isShown(GameButton.POPUP_CLOSE)) {
+            click(GameButton.POPUP_CLOSE);
+            closed++;
+            sleep(Duration.ofSeconds(2));
+        }
+        return closed;
+    }
+
     /** Holds a key on the focused game (click the canvas first so Unity has focus). */
     public void holdKey(CharSequence key, Duration duration) {
         new Actions(driver).keyDown(key).pause(duration).keyUp(key).perform();
