@@ -32,6 +32,8 @@ This installs the emulator, Android 15 with Chrome, creates an emulator called `
 ./mvnw test -Pandroid -Dgroups=smoke
 ```
 
+The web game isn't offered on mobile browsers (`/play` shows app store links), so the in-game tests and AUTH-04 skip on Android. Run AUTH-04 on desktop first so mobile has a linked account for login and purchase.
+
 Config: copy `.env.example` to `.env`, or pass `-Dkey=value`.
 
 Desktop runs draw a red dot where the automation moves and clicks (Selenium doesn't move the real cursor). Turn off with `-Dshow.cursor=false`.

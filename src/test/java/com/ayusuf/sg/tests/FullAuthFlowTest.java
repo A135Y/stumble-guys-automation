@@ -12,6 +12,7 @@ import org.testng.annotations.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /** AUTH-04: new email -> link in the web game -> log in on the website. Creates a real account, saved for AUTH-02/PUR-01. */
+@DesktopOnly("links the account in the web game, which mobile browsers don't offer")
 @Test(groups = {"e2e-full", "core"})
 public class FullAuthFlowTest extends BaseTest {
 

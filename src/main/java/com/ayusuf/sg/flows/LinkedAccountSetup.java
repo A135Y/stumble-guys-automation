@@ -1,5 +1,6 @@
 package com.ayusuf.sg.flows;
 
+import com.ayusuf.sg.config.Config;
 import com.ayusuf.sg.email.LinkedAccount;
 import com.ayusuf.sg.email.MailTmInbox;
 import com.ayusuf.sg.pages.AlmostTherePopup;
@@ -23,6 +24,10 @@ public final class LinkedAccountSetup {
             new EmailSignIn(driver, saved.get()).signIn();
             if (isFullyLoggedIn(driver)) return saved.get();
             System.out.println("[setup] saved account " + saved.get().address() + " isn't logged in on the site, linking a new one");
+        }
+        if (Config.platform().isMobile()) {
+            throw new IllegalStateException("No usable linked account, and it can't be created on mobile (linking needs the web game)."
+                    + " Run AUTH-04 on desktop first: ./mvnw test -Dgroups=e2e-full");
         }
 
         MailTmInbox inbox = MailTmInbox.create();

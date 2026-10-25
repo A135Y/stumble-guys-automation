@@ -38,6 +38,7 @@ public class GameCanvas extends BasePage {
     // loads took 22-90s+; keep waiting while the percentage moves, give up after 45s without change (once past 0 %)
     private static final Duration LOAD_TIMEOUT = Duration.ofMinutes(3);
     private static final Duration STALL_TIMEOUT = Duration.ofSeconds(45);
+    private static final Duration NO_GAME_TIMEOUT = Duration.ofSeconds(20);
     private static final int LOAD_ATTEMPTS = 2;
 
     private BufferedImage[] lastChange;
@@ -62,6 +63,7 @@ public class GameCanvas extends BasePage {
                 StepTimer.step("game loaded");
                 return this;
             }
+            if (result.startsWith("no web game")) break; // reloading won't help
             StepTimer.step("game load " + result + ", reloading");
         }
         throw new IllegalStateException("Game didn't load after " + LOAD_ATTEMPTS + " attempts (" + result + ")");
@@ -71,11 +73,15 @@ public class GameCanvas extends BasePage {
     public String waitUntilLoaded() {
         Instant deadline = Instant.now().plus(LOAD_TIMEOUT);
         String last = null;
-        Instant lastChange = Instant.now();
+        Instant begin = Instant.now(), lastChange = begin;
         while (Instant.now().isBefore(deadline)) {
             WebElement c = driver.findElements(CANVAS).stream().findFirst().orElse(null);
             String progress = loaderText();
             if (c != null && c.getSize().getWidth() > 300 && progress.isEmpty()) return "";
+            // mobile browsers get app store links instead of the game: no canvas and no loader at all
+            if (c == null && progress.isEmpty() && Duration.between(begin, Instant.now()).compareTo(NO_GAME_TIMEOUT) > 0) {
+                return "no web game on the page (no canvas or loader after " + NO_GAME_TIMEOUT.toSeconds() + "s)";
+            }
             // 0 % covers the main file download, which on a slow connection takes well over 45s
             boolean started = !progress.isEmpty() && !progress.matches("0\\s*%");
             if (!progress.equals(last)) {

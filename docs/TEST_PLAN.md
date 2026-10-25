@@ -40,6 +40,10 @@ Out of scope:
 | WGL-05 | Lobby -> Customize -> tab -> back |
 | WGL-06 | Lobby -> Events -> Ranked tab -> back |
 
+| WGL-M1 | Mobile: /play offers the Google Play / App Store apps instead of the game (Android only) |
+
+**On mobile browsers the site doesn't offer the WebGL game** - /play shows app store links. So on Android, WGL-01/04/05/06 and AUTH-04 (which links the account in the web game) are skipped with that reason (`@DesktopOnly`), and WGL-M1 checks what mobile gets instead. AUTH-02 and PUR-01 run on both. On mobile, PUR-01 needs the linked account created by AUTH-04 on desktop.
+
 **Desktop extras** - kept as additional coverage, not ported to mobile: AUTH-01 (new email reaches "Almost there"), WGL-02 (onboarding reaches the asset download).
 
 **Always run by default** (`./mvnw test`): unit tests (no browser) and smoke tests (no account).

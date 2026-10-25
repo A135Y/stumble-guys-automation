@@ -14,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * In-game tests on a guest player (no account). Accepting the age gate accepts the game's ToS for that guest.
  * WGL-04: Accept is blocked until an age is set. WGL-02: onboarding gets past the age gate to asset loading.
  */
+@DesktopOnly("the web game isn't offered on mobile browsers (/play shows app store links)")
 @Test(groups = "webgl")
 public class GameOnboardingTest extends BaseTest {
 

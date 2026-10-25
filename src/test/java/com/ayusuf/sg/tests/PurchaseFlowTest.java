@@ -1,11 +1,14 @@
 package com.ayusuf.sg.tests;
 
+import com.ayusuf.sg.config.Config;
+import com.ayusuf.sg.email.LinkedAccount;
 import com.ayusuf.sg.flows.LinkedAccountSetup;
 import com.ayusuf.sg.pages.CheckoutOverlay;
 import com.ayusuf.sg.pages.ShopPage;
 import com.ayusuf.sg.support.Artifacts;
 import com.ayusuf.sg.support.PaymentGuard;
 import com.ayusuf.sg.support.StepTimer;
+import org.testng.SkipException;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,6 +21,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PurchaseFlowTest extends BaseTest {
 
     public void checkoutOpensAndStopsBeforePayment() {
+        if (Config.platform().isMobile() && LinkedAccount.load().isEmpty()) {
+            throw new SkipException("No linked account at " + LinkedAccount.file()
+                    + "; mobile can't create one (needs the web game). Run AUTH-04 on desktop first.");
+        }
         LinkedAccountSetup.signedIn(driver);
         StepTimer.step("signed in (precondition)");
 

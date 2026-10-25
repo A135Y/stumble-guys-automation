@@ -14,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * WGL-05 / WGL-06: lobby screens open, a tab inside them responds, and back returns to the lobby. Guest player.
  * Slow and opt-in (-Dgroups=webgl-slow): the lobby sits behind a 788 MB download, done every run.
  */
+@DesktopOnly("the web game isn't offered on mobile browsers (/play shows app store links)")
 @Test(groups = {"webgl-slow", "core"})
 public class GameLobbyTest extends BaseTest {
 
