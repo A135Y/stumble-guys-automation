@@ -93,6 +93,8 @@ First tried a gameplay test (join a round, hold the up arrow). The gameplay prob
 
 Lobby probe (2026-10-25): both screens opened; Escape also goes back, but the tests use the visible back arrow.
 
+Both passed on desktop Chrome (2026-10-25): WGL-05 119s, WGL-06 93s (game load + 788 MB download + lobby is most of it). First run failed on a Chaotic Offers popup sliding in after returning; lobby-ready now has to hold for two checks.
+
 ### Returning email (verified with the probe, used by AUTH-02)
 1. Same entry as AUTH-01; no new-account step
 2. Email "[NNNNNN] Your Scopely Account one-time code" -> type into the 6 boxes -> Sign in
