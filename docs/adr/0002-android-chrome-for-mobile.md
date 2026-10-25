@@ -11,7 +11,7 @@ Mobile tests need one platform, iOS or Android.
 Android emulator with Chrome, driven through Appium's UiAutomator2 driver.
 
 - iOS Safari needs Xcode, a simulator and Safari WebDriver setup, which a reviewer may not have and which only works on a Mac.
-- Android tooling runs on macOS, Windows and Linux, and can run in CI (GitHub Actions has emulator runners).
+- Android tooling runs on macOS, Windows and Linux.
 - WebGL support in Chrome on Android is more predictable than mobile Safari.
 
 ## Consequences
