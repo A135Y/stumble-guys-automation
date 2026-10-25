@@ -38,8 +38,8 @@ Out of scope:
 | WGL-01 | Game loads to the welcome screen | Desktop | webgl |
 | WGL-02 | Guest onboarding: Start Playing -> age gate -> past it to asset download | Desktop | webgl |
 | WGL-04 | Age gate: Accept disabled and ignored at 0 years, enabled once an age is set | Desktop | webgl |
-| WGL-05 | Lobby: Customize opens the customisation screen and Back returns to the lobby | Desktop | webgl-slow (opt-in) |
-| WGL-06 | Lobby: Events opens the events screen and Back returns to the lobby | Desktop | webgl-slow (opt-in) |
+| WGL-05 | Lobby: Customize opens, a category tab responds, Back returns to the lobby | Desktop | webgl-slow (opt-in) |
+| WGL-06 | Lobby: Events opens, the Ranked tab responds, Back returns to the lobby | Desktop | webgl-slow (opt-in) |
 
 Details are added as each case is implemented.
 
@@ -88,8 +88,10 @@ Lobby tests. The lobby sits behind a **788 MB asset download**, done in a fresh 
 
 First tried a gameplay test (join a round, hold the up arrow). The gameplay probe got into a round once (Spin Go Round), but the WGL-05 run then sat on matchmaking waiting for players - depends on live servers and other people, so not a stable test. Switched to lobby screens, which open immediately and are deterministic. Promo popups over the lobby are closed as they appear (two styles seen: blue X "Dear Fred's Candy Countdown", red X "Chaotic Offers" - the latter has FREE claim buttons, never clicked).
 1. Onboarding -> Download Assets OK -> wait until the lobby is clear (PLAY visible, no popup X; PLAY matches even dimmed behind a popup)
-2. WGL-05: click CUSTOMIZE -> "CUSTOMIZE" screen -> back arrow -> lobby clear
-3. WGL-06: click EVENTS -> "LET'S PLAY" screen (Events / Ranked / Tournaments) -> back arrow -> lobby clear
+2. WGL-05: click CUSTOMIZE -> "CUSTOMIZE" screen -> click the second category tab -> screen changes -> back -> lobby clear
+3. WGL-06: click EVENTS -> "LET'S PLAY" screen -> click the Ranked tab -> screen changes -> back -> lobby clear
+
+"Screen changes" = change after the click is more than 3x the change over the same 2s without clicking (the screens animate by themselves). No equipping or buying. Back is pressed repeatedly (closing popups) until the lobby is clear, since sub-views can need more than one.
 
 Lobby probe (2026-10-25): both screens opened; Escape also goes back, but the tests use the visible back arrow.
 

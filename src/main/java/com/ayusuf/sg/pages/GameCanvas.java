@@ -39,6 +39,8 @@ public class GameCanvas extends BasePage {
     private static final Duration STALL_TIMEOUT = Duration.ofSeconds(45);
     private static final int LOAD_ATTEMPTS = 2;
 
+    private BufferedImage[] lastChange;
+
     private static final By CANVAS = By.cssSelector("canvas#react-unity-webgl-canvas-1");
     private static final By LOADING_PERCENT = By.xpath("//*[contains(@class,'font-lilita') and contains(normalize-space(.),'%')]");
 
@@ -237,10 +239,36 @@ public class GameCanvas extends BasePage {
         waitFor(title, Duration.ofSeconds(15));
     }
 
-    /** Back arrow on a lobby screen, then waits until the lobby is clear again. */
+    /** Back arrow until the lobby is clear; sub-views can need more than one, and popups get closed on the way. */
     public void backToLobby() {
-        click(GameButton.SCREEN_BACK);
+        for (int i = 0; i < 4 && !isLobbyReady(); i++) {
+            dismissPopups();
+            if (isShown(GameButton.SCREEN_BACK)) click(GameButton.SCREEN_BACK);
+            sleep(Duration.ofSeconds(2));
+        }
         waitForLobby(Duration.ofSeconds(30));
+    }
+
+    /**
+     * Clicks at a position and returns how much more the screen changed than it does by itself over the same time
+     * (screens animate on their own). A ratio well above 1 means the click did something.
+     */
+    public double clickAndMeasureChange(double fx, double fy, Duration settle) {
+        BufferedImage a = screenshot();
+        sleep(settle);
+        BufferedImage idle = screenshot();
+        clickAt(fx, fy);
+        sleep(settle);
+        BufferedImage after = screenshot();
+        lastChange = new BufferedImage[]{idle, after};
+        double idleDiff = ImageMatcher.meanDifference(a, idle);
+        double clickDiff = ImageMatcher.meanDifference(idle, after);
+        return clickDiff / Math.max(idleDiff, 1.0);
+    }
+
+    /** Before/after images from the last clickAndMeasureChange, for evidence. */
+    public BufferedImage[] lastChange() {
+        return lastChange;
     }
 
     /** Closes promo popups (blue or red square X) until none is left; they can queue up. Returns how many. */
