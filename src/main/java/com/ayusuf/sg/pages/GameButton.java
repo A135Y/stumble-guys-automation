@@ -10,7 +10,9 @@ public enum GameButton {
     WELCOME_START_PLAYING("welcome-start-playing"),
     WELCOME_CONTINUE_WITH_EMAIL("welcome-continue-with-email"),
     AGE_TITLE("age-title"),
-    AGE_ACCEPT("age-accept");
+    AGE_ACCEPT("age-accept"),
+    DOWNLOAD_TITLE("download-title"),
+    DOWNLOAD_OK("download-ok");
 
     private final String file;
     private BufferedImage image;

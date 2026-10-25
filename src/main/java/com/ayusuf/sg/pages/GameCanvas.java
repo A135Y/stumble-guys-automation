@@ -143,6 +143,27 @@ public class GameCanvas extends BasePage {
         click(GameButton.AGE_ACCEPT);
     }
 
+    /** Accept is grey-blue until an age is set, then green. */
+    public boolean isAgeAcceptEnabled() {
+        return isAgeAcceptEnabled(screenshot());
+    }
+
+    static boolean isAgeAcceptEnabled(BufferedImage canvas) {
+        Match m = ImageMatcher.find(canvas, GameButton.AGE_ACCEPT.image(), MATCH_THRESHOLD)
+                .orElseThrow(() -> new IllegalStateException("Accept button not on screen"));
+        // sample the button background left of the label
+        long g = 0, b = 0, n = 0;
+        for (int y = (int) m.y() - 16; y < m.y() - 4; y++) {
+            for (int x = (int) m.x() - 68; x < m.x() - 48; x++) {
+                int rgb = canvas.getRGB(x, y);
+                g += (rgb >> 8) & 0xff;
+                b += rgb & 0xff;
+                n++;
+            }
+        }
+        return (g - b) / n > 60;
+    }
+
     public void waitUntilGone(GameButton button, Duration timeout) {
         Instant deadline = Instant.now().plus(timeout);
         while (isShown(button)) {
