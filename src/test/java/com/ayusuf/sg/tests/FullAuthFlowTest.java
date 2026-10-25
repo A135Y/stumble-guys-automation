@@ -25,5 +25,6 @@ public class FullAuthFlowTest extends BaseTest {
         assertThat(home.hasScopelyToken()).as("Scopely idToken stored").isTrue();
         assertThat(new AlmostTherePopup(driver).isShown()).as("Almost there popup").isFalse();
         assertThat(home.isLoggedIn()).as("header shows logged in").isTrue();
+        Artifacts.screenshot(driver, "auth04-logged-in");
     }
 }

@@ -48,6 +48,15 @@ Details are added as each case is implemented.
 
 Verified with the probe on desktop Chrome (2026-10-24). No code step for new accounts.
 
+### AUTH-04 (implemented, `FullAuthFlowTest`, group `e2e-full`)
+1. New mail.tm inbox
+2. `/play` -> welcome -> Continue with email -> Scopely popup (new account: Agree + link) -> popup closes
+3. Age gate: slider to 25, Accept
+4. Website login with the same email (returning: code)
+5. Expect: `idToken` stored, no "Almost there", header logged in. Saves `auth04-logged-in.png`
+
+Passed on desktop Chrome (2026-10-25) after fixing #6, #8, #9, #10.
+
 ### Returning email (verified with the probe, used by AUTH-02)
 1. Same entry as AUTH-01; no new-account step
 2. Email "[NNNNNN] Your Scopely Account one-time code" -> type into the 6 boxes -> Sign in
