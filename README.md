@@ -17,6 +17,21 @@ Needs JDK 21 and Chrome.
 
 Test cases and which run where: `docs/TEST_PLAN.md`.
 
+### Android
+
+One-time setup (macOS; needs Homebrew and Node 20+):
+
+```bash
+brew install --cask android-commandlinetools
+./scripts/setup-android.sh       # accept the SDK licences when asked
+```
+
+This installs the emulator, Android 15 with Chrome, creates an emulator called `sg-pixel`, and installs the Appium server and Android driver pinned in `package.json` (Appium 3.8.0, UiAutomator2 8.7.0). The tests start Appium themselves and boot `sg-pixel` if no emulator is running (first boot takes ~1 min). Appium's log is saved as `appium.log` in the run's artifacts folder.
+
+```bash
+./mvnw test -Pandroid -Dgroups=smoke
+```
+
 Config: copy `.env.example` to `.env`, or pass `-Dkey=value`.
 
 Desktop runs draw a red dot where the automation moves and clicks (Selenium doesn't move the real cursor). Turn off with `-Dshow.cursor=false`.
