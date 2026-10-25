@@ -9,10 +9,13 @@ Automated tests for the Stumble Guys web portal (https://www.stumbleguys.com/), 
 Needs JDK 21 and Chrome.
 
 ```bash
-./mvnw test                      # unit + smoke, desktop Chrome
+./mvnw test                      # unit + smoke, desktop Chrome, no accounts
+./mvnw test -Dgroups=core        # the brief's test cases (creates/uses test accounts, downloads game assets)
 ./mvnw test -Dheadless=true
 ./mvnw test -Pandroid            # Chrome on Android (needs Appium + emulator, setup TBD)
 ```
+
+Test cases and which run where: `docs/TEST_PLAN.md`.
 
 Config: copy `.env.example` to `.env`, or pass `-Dkey=value`.
 
