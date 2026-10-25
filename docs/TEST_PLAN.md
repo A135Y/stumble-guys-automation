@@ -80,6 +80,8 @@ Guest player, no account. Found with the onboarding probe (2026-10-25):
 WGL-04: Accept disabled at 0 -> click -> still on age gate -> set 25 -> Accept enabled.
 WGL-02: set 25 -> Accept -> "Download Assets" prompt with OK.
 
+Both passed on desktop Chrome (2026-10-25): WGL-04 53.8s, WGL-02 58.0s (mostly the 30-45s game load).
+
 ### WGL-05 (planned, group `webgl-slow`)
 Fresh browser every run, so it **downloads the 788 MB of game assets each time** (decided over caching a browser profile: keeps runs isolated, at the cost of time and bandwidth). Opt-in only: `./mvnw test -Dgroups=webgl-slow`. Joins a real match with a guest player.
 
