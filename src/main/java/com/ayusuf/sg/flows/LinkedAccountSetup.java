@@ -6,7 +6,6 @@ import com.ayusuf.sg.pages.AlmostTherePopup;
 import com.ayusuf.sg.pages.HomePage;
 import org.openqa.selenium.WebDriver;
 
-import java.time.Duration;
 import java.util.Optional;
 
 /**
@@ -37,7 +36,8 @@ public final class LinkedAccountSetup {
         return inbox;
     }
 
+    /** Instant check: call after EmailSignIn.signIn(), which already waits for the page to settle. */
     public static boolean isFullyLoggedIn(WebDriver driver) {
-        return !new AlmostTherePopup(driver).isShown(Duration.ofSeconds(5)) && new HomePage(driver).isLoggedIn();
+        return !new AlmostTherePopup(driver).isShownNow() && new HomePage(driver).isLoggedInNow();
     }
 }
