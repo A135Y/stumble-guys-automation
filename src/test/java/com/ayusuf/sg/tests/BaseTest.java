@@ -21,6 +21,7 @@ public abstract class BaseTest {
 
     @AfterMethod(alwaysRun = true)
     public void stopDriver(ITestResult result) {
+        StepTimer.step("test body done");
         try {
             if (result.getStatus() == ITestResult.FAILURE) {
                 String name = result.getMethod().getMethodName();
@@ -30,6 +31,7 @@ public abstract class BaseTest {
             System.err.println("Could not save screenshot: " + e.getMessage());
         } finally {
             DriverManager.quit();
+            StepTimer.step("browser closed");
         }
     }
 }

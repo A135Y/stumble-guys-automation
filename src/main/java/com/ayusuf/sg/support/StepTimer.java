@@ -1,6 +1,9 @@
 package com.ayusuf.sg.support;
 
-/** Prints how long each step took, e.g. "[step] email received  +6.2s (12.4s)". One per test thread. */
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+
+/** Prints how long each step took, e.g. "[step] 11:31:42 email received  +6.2s (12.4s)". One per test thread. */
 public final class StepTimer {
 
     private static final ThreadLocal<long[]> TIMES = ThreadLocal.withInitial(() -> {
@@ -19,7 +22,8 @@ public final class StepTimer {
     public static void step(String name) {
         long[] t = TIMES.get();
         long now = System.nanoTime();
-        System.out.printf("[step] %-28s +%.1fs (%.1fs)%n", name, (now - t[1]) / 1e9, (now - t[0]) / 1e9);
+        System.out.printf("[step] %s %-28s +%.1fs (%.1fs)%n", LocalTime.now().truncatedTo(ChronoUnit.SECONDS),
+                name, (now - t[1]) / 1e9, (now - t[0]) / 1e9);
         t[1] = now;
     }
 }
