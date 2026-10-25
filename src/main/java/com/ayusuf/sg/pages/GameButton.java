@@ -14,7 +14,13 @@ public enum GameButton {
     DOWNLOAD_TITLE("download-title"),
     DOWNLOAD_OK("download-ok"),
     POPUP_CLOSE("popup-close"),
-    LOBBY_PLAY("lobby-play");
+    POPUP_CLOSE_RED("popup-close-red"),
+    LOBBY_PLAY("lobby-play"),
+    LOBBY_CUSTOMIZE("lobby-customize"),
+    LOBBY_EVENTS("lobby-events"),
+    CUSTOMIZE_TITLE("customize-title"),
+    EVENTS_TITLE("events-title"),
+    SCREEN_BACK("screen-back");
 
     private final String file;
     private BufferedImage image;

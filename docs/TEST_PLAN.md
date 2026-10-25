@@ -38,8 +38,8 @@ Out of scope:
 | WGL-01 | Game loads to the welcome screen | Desktop | webgl |
 | WGL-02 | Guest onboarding: Start Playing -> age gate -> past it to asset download | Desktop | webgl |
 | WGL-04 | Age gate: Accept disabled and ignored at 0 years, enabled once an age is set | Desktop | webgl |
-| WGL-05 | Lobby: Customize opens the customisation screen and Back returns to the lobby | Desktop | webgl-slow (opt-in, planned) |
-| WGL-06 | Lobby: Events opens the events screen and Back returns to the lobby | Desktop | webgl-slow (opt-in, planned) |
+| WGL-05 | Lobby: Customize opens the customisation screen and Back returns to the lobby | Desktop | webgl-slow (opt-in) |
+| WGL-06 | Lobby: Events opens the events screen and Back returns to the lobby | Desktop | webgl-slow (opt-in) |
 
 Details are added as each case is implemented.
 
@@ -83,10 +83,15 @@ WGL-02: set 25 -> Accept -> "Download Assets" prompt with OK.
 
 Both passed on desktop Chrome (2026-10-25): WGL-04 53.8s, WGL-02 58.0s (mostly the 30-45s game load).
 
-### WGL-05 / WGL-06 (planned, group `webgl-slow`)
+### WGL-05 / WGL-06 (implemented, `GameLobbyTest`, group `webgl-slow`)
 Lobby tests. The lobby sits behind a **788 MB asset download**, done in a fresh browser every run (decided over caching a browser profile: keeps runs isolated, at the cost of time and bandwidth). Opt-in only: `./mvnw test -Dgroups=webgl-slow`.
 
-First tried a gameplay test (join a round, hold the up arrow). The gameplay probe got into a round once (Spin Go Round), but the WGL-05 run then sat on matchmaking waiting for players - depends on live servers and other people, so not a stable test. Switched to lobby screens, which open immediately and are deterministic. Promo popups (blue X) over the lobby are closed as they appear.
+First tried a gameplay test (join a round, hold the up arrow). The gameplay probe got into a round once (Spin Go Round), but the WGL-05 run then sat on matchmaking waiting for players - depends on live servers and other people, so not a stable test. Switched to lobby screens, which open immediately and are deterministic. Promo popups over the lobby are closed as they appear (two styles seen: blue X "Dear Fred's Candy Countdown", red X "Chaotic Offers" - the latter has FREE claim buttons, never clicked).
+1. Onboarding -> Download Assets OK -> wait until the lobby is clear (PLAY visible, no popup X; PLAY matches even dimmed behind a popup)
+2. WGL-05: click CUSTOMIZE -> "CUSTOMIZE" screen -> back arrow -> lobby clear
+3. WGL-06: click EVENTS -> "LET'S PLAY" screen (Events / Ranked / Tournaments) -> back arrow -> lobby clear
+
+Lobby probe (2026-10-25): both screens opened; Escape also goes back, but the tests use the visible back arrow.
 
 ### Returning email (verified with the probe, used by AUTH-02)
 1. Same entry as AUTH-01; no new-account step

@@ -47,6 +47,30 @@ public class GameCanvasTest {
         assertThat(GameCanvas.isLobbyReady(load("lobby-880"))).isTrue();
     }
 
+    public void lobbyButtonsAndScreensRecognised() {
+        for (String lobby : new String[]{"lobby-880", "lobby-2-880"}) {
+            assertThat(score(load(lobby), GameButton.LOBBY_CUSTOMIZE)).as(lobby).isGreaterThan(0.9);
+            assertThat(score(load(lobby), GameButton.LOBBY_EVENTS)).as(lobby).isGreaterThan(0.9);
+            assertThat(score(load(lobby), GameButton.SCREEN_BACK)).as(lobby).isLessThan(0.9);
+        }
+        assertThat(score(load("customize-880"), GameButton.CUSTOMIZE_TITLE)).isGreaterThan(0.95);
+        assertThat(score(load("events-880"), GameButton.EVENTS_TITLE)).isGreaterThan(0.95);
+        assertThat(score(load("customize-880"), GameButton.EVENTS_TITLE)).isLessThan(0.9);
+        assertThat(score(load("events-880"), GameButton.CUSTOMIZE_TITLE)).isLessThan(0.9);
+        // same back arrow on both screens
+        assertThat(score(load("customize-880"), GameButton.SCREEN_BACK)).isGreaterThan(0.95);
+        assertThat(score(load("events-880"), GameButton.SCREEN_BACK)).isGreaterThan(0.9);
+    }
+
+    public void redPopupCloseAlsoBlocksLobby() {
+        assertThat(score(load("offers-popup-880"), GameButton.POPUP_CLOSE_RED)).isGreaterThan(0.95);
+        for (String other : new String[]{"lobby-880", "lobby-2-880", "customize-880", "events-880", "welcome-880"}) {
+            assertThat(score(load(other), GameButton.POPUP_CLOSE_RED)).as(other).isLessThan(0.9);
+        }
+        assertThat(GameCanvas.isLobbyReady(load("offers-popup-880"))).isFalse();
+        assertThat(GameCanvas.isLobbyReady(load("lobby-2-880"))).isTrue();
+    }
+
     private static double score(BufferedImage canvas, GameButton button) {
         return ImageMatcher.best(canvas, button.image()).score();
     }

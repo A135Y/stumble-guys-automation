@@ -220,18 +220,40 @@ public class GameCanvas extends BasePage {
     /** PLAY matches even dimmed behind a popup (matching ignores brightness), so also require no popup X. */
     static boolean isLobbyReady(BufferedImage canvas) {
         return ImageMatcher.find(canvas, GameButton.LOBBY_PLAY.image(), MATCH_THRESHOLD).isPresent()
-                && ImageMatcher.find(canvas, GameButton.POPUP_CLOSE.image(), MATCH_THRESHOLD).isEmpty();
+                && popupClose(canvas).isEmpty();
     }
 
-    /** Closes promo popups (blue square X) until none is left; they can queue up. Returns how many. */
+    /** Opens a lobby screen and waits for its title. */
+    public void openFromLobby(GameButton button, GameButton title) {
+        click(button);
+        waitFor(title, Duration.ofSeconds(15));
+    }
+
+    /** Back arrow on a lobby screen, then waits until the lobby is clear again. */
+    public void backToLobby() {
+        click(GameButton.SCREEN_BACK);
+        waitForLobby(Duration.ofSeconds(30));
+    }
+
+    /** Closes promo popups (blue or red square X) until none is left; they can queue up. Returns how many. */
     public int dismissPopups() {
         int closed = 0;
-        while (closed < 5 && isShown(GameButton.POPUP_CLOSE)) {
-            click(GameButton.POPUP_CLOSE);
+        while (closed < 5) {
+            BufferedImage shot = screenshot();
+            Optional<GameButton> close = popupClose(shot);
+            if (close.isEmpty()) break;
+            click(close.get());
             closed++;
             sleep(Duration.ofSeconds(2));
         }
         return closed;
+    }
+
+    private static Optional<GameButton> popupClose(BufferedImage canvas) {
+        for (GameButton b : new GameButton[]{GameButton.POPUP_CLOSE, GameButton.POPUP_CLOSE_RED}) {
+            if (ImageMatcher.find(canvas, b.image(), MATCH_THRESHOLD).isPresent()) return Optional.of(b);
+        }
+        return Optional.empty();
     }
 
     /** Holds a key on the focused game (click the canvas first so Unity has focus). */
