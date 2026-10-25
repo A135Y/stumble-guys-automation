@@ -93,6 +93,8 @@ Precondition (`LinkedAccountSetup`): a logged-in, game-linked account. Reuses `.
 
 Passed on desktop Chrome (2026-10-25): checkout showed Total £2.99, Pay not clicked, header logged in.
 
+On Android Chrome Xsolla leads with Google Pay ("Buy with G Pay", a button labelled "Pay"), with Card and PayPal below; the test accepts either Pay button and clicks neither.
+
 ### AUTH-02 (implemented, `LoginTest`)
 Saved linked account -> email -> code -> logged in, no "Almost there". Passed 2026-10-25 (12.2s).
 
