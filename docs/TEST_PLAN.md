@@ -46,7 +46,7 @@ Details are added as each case is implemented.
 3. Open the emailed link in a second tab, wait for "Success", switch back
 4. Expect: back on stumbleguys.com, `idToken` in localStorage, "Almost there" popup, header still logged out
 
-Verified with the probe on desktop Chrome (2026-10-24). No code step for new accounts.
+Verified with the probe on desktop Chrome (2026-10-24). No code step for new accounts. Test passed 2026-10-25 (15.8s).
 
 ### AUTH-04 (implemented, `FullAuthFlowTest`, group `e2e-full`)
 1. New mail.tm inbox
@@ -65,6 +65,9 @@ Precondition (`LinkedAccountSetup`): a logged-in, game-linked account. Reuses `.
 4. Close the checkout; `PaymentGuard` confirms no window reached a completed-order page. Saves `pur01-checkout.png`
 
 Passed on desktop Chrome (2026-10-25): checkout showed Total £2.99, Pay not clicked, header logged in.
+
+### AUTH-02 (implemented, `LoginTest`)
+Saved linked account -> email -> code -> logged in, no "Almost there". Passed 2026-10-25 (12.2s).
 
 ### Returning email (verified with the probe, used by AUTH-02)
 1. Same entry as AUTH-01; no new-account step
