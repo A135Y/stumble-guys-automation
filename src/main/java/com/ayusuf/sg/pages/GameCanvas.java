@@ -202,15 +202,23 @@ public class GameCanvas extends BasePage {
         }
     }
 
-    /** Waits for the lobby with no popup over it, closing popups as they appear. */
+    /**
+     * Waits for the lobby with no popup over it, closing popups as they appear. Popups can slide in a moment
+     * after the lobby shows (e.g. on returning from Customize), so it has to be clear on two checks in a row.
+     */
     public void waitForLobby(Duration timeout) {
         Instant deadline = Instant.now().plus(timeout);
+        int clear = 0;
         while (Instant.now().isBefore(deadline)) {
-            if (isLobbyReady(screenshot())) return;
-            dismissPopups();
-            sleep(Duration.ofSeconds(2));
+            if (isLobbyReady(screenshot())) {
+                if (++clear >= 2) return;
+            } else {
+                clear = 0;
+                dismissPopups();
+            }
+            sleep(Duration.ofSeconds(3));
         }
-        throw new IllegalStateException("Lobby not ready within " + timeout.toMinutes() + " min");
+        throw new IllegalStateException("Lobby not ready within " + timeout.toSeconds() + "s");
     }
 
     public boolean isLobbyReady() {
