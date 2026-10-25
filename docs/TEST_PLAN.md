@@ -38,7 +38,7 @@ Out of scope:
 | WGL-01 | Game loads to the welcome screen | Desktop | webgl |
 | WGL-02 | Guest onboarding: Start Playing -> age gate -> past it to asset download | Desktop | webgl |
 | WGL-04 | Age gate: Accept disabled and ignored at 0 years, enabled once an age is set | Desktop | webgl |
-| WGL-05 | Gameplay: start a round and check the game reacts to keyboard input | Desktop | webgl (planned) |
+| WGL-05 | Gameplay: start a round and check the game reacts to keyboard input | Desktop | webgl-slow (opt-in, planned) |
 
 Details are added as each case is implemented.
 
@@ -79,6 +79,9 @@ Guest player, no account. Found with the onboarding probe (2026-10-25):
 
 WGL-04: Accept disabled at 0 -> click -> still on age gate -> set 25 -> Accept enabled.
 WGL-02: set 25 -> Accept -> "Download Assets" prompt with OK.
+
+### WGL-05 (planned, group `webgl-slow`)
+Fresh browser every run, so it **downloads the 788 MB of game assets each time** (decided over caching a browser profile: keeps runs isolated, at the cost of time and bandwidth). Opt-in only: `./mvnw test -Dgroups=webgl-slow`. Joins a real match with a guest player.
 
 ### Returning email (verified with the probe, used by AUTH-02)
 1. Same entry as AUTH-01; no new-account step

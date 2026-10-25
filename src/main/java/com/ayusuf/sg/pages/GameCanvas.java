@@ -174,6 +174,11 @@ public class GameCanvas extends BasePage {
         }
     }
 
+    /** Holds a key on the focused game (click the canvas first so Unity has focus). */
+    public void holdKey(CharSequence key, Duration duration) {
+        new Actions(driver).keyDown(key).pause(duration).keyUp(key).perform();
+    }
+
     /** Clicks at a fraction of the canvas size, (0,0) top-left to (1,1) bottom-right. */
     public void clickAt(double fx, double fy) {
         WebElement c = canvas();
