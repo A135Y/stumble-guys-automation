@@ -3,6 +3,7 @@ package com.ayusuf.sg.tests;
 import com.ayusuf.sg.config.Config;
 import com.ayusuf.sg.driver.DriverManager;
 import com.ayusuf.sg.support.Artifacts;
+import com.ayusuf.sg.support.ScreenRecorder;
 import com.ayusuf.sg.support.StepTimer;
 import org.openqa.selenium.WebDriver;
 import org.testng.ITestResult;
@@ -16,6 +17,7 @@ import java.lang.reflect.Method;
 public abstract class BaseTest {
 
     protected WebDriver driver;
+    private ScreenRecorder recorder;
 
     @BeforeMethod(alwaysRun = true)
     public void startDriver(Method method) {
@@ -23,6 +25,7 @@ public abstract class BaseTest {
         StepTimer.start();
         driver = DriverManager.start();
         StepTimer.step("browser started");
+        if (Config.getBool("record")) recorder = ScreenRecorder.start(driver);
     }
 
     private static void skipIfWrongPlatform(Method method) {
@@ -42,6 +45,11 @@ public abstract class BaseTest {
     public void stopDriver(ITestResult result) {
         if (driver == null) return; // skipped before the browser started
         StepTimer.step("test body done");
+        if (recorder != null) {
+            recorder.stop(result.getTestClass().getRealClass().getSimpleName() + "." + result.getMethod().getMethodName())
+                    .ifPresent(video -> System.out.println("Video: " + video.toAbsolutePath()));
+            recorder = null;
+        }
         try {
             if (result.getStatus() == ITestResult.FAILURE) {
                 String name = result.getMethod().getMethodName();

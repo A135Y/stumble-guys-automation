@@ -45,7 +45,7 @@ Optional config: copy `.env.example` to `.env`, or pass `-Dkey=value`.
 ./mvnw test -Dgroups=core -Dtest=PurchaseFlowTest   # one class
 ```
 
-Flags: `-Dheadless=true`, `-Dwindow.maximized=true` (bigger window, e.g. for recording), `-Dshow.cursor=false` (hides the red dot that shows where the test clicks).
+Flags: `-Dheadless=true`, `-Dwindow.maximized=true` (bigger window), `-Dshow.cursor=false` (hides the red dot that shows where the test clicks), `-Drecord=true` (one video per test; on desktop the terminal needs macOS Screen Recording permission and `ffmpeg`).
 
 Screenshots, step timings and (Android) `appium.log` go to `target/artifacts/<timestamp>/`.
 
