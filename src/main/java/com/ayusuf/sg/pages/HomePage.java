@@ -11,7 +11,10 @@ import java.time.Duration;
 
 public class HomePage extends BasePage {
 
-    private static final By PLAY_LINK = By.cssSelector("a[href='/play']");
+    // desktop: links to /play; mobile: PLAY / PLAY NOW! are plain buttons and the /play link is hidden
+    private static final By PLAY_LINK = By.xpath("//a[@href='/play']"
+            + " | //button[translate(normalize-space(.),'abcdefghijklmnopqrstuvwxyz','ABCDEFGHIJKLMNOPQRSTUVWXYZ')='PLAY'"
+            + " or translate(normalize-space(.),'abcdefghijklmnopqrstuvwxyz','ABCDEFGHIJKLMNOPQRSTUVWXYZ')='PLAY NOW!']");
     private static final By MENU_BUTTON = By.xpath("//button[.//img[contains(@src,'/images/menu/')]]");
     private static final By LOGIN_BUTTON = By.cssSelector("button[class*='AuthButton_login']");
     private static final By LOGGED_OUT_ICON = By.cssSelector("img[src*='/images/menu/logged_out']");

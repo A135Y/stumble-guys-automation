@@ -19,7 +19,7 @@ Out of scope:
 | Platform | Browser | Driver |
 |---|---|---|
 | Desktop (macOS / Windows / Linux) | Chrome | Selenium (ChromeDriver via Selenium Manager) |
-| Android emulator | Chrome | Appium UiAutomator2 |
+| Android emulator (`sg-pixel`, Pixel 7, Android 15, arm64) | Chrome | Appium 3.8.0 + UiAutomator2 8.7.0 (pinned in `package.json`) |
 
 ## Test data
 

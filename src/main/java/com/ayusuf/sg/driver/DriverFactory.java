@@ -46,7 +46,9 @@ public final class DriverFactory {
         UiAutomator2Options options = new UiAutomator2Options()
                 .withBrowserName("Chrome")
                 .setDeviceName(Config.get("android.device.name"))
-                .setNewCommandTimeout(Duration.ofMinutes(2));
+                .setNewCommandTimeout(Duration.ofMinutes(2))
+                .setAvdLaunchTimeout(Duration.ofMinutes(4))
+                .setAvdReadyTimeout(Duration.ofMinutes(4));
         options.setCapability("appium:chromedriverAutodownload", true);
         Config.find("android.platform.version").ifPresent(options::setPlatformVersion);
         Config.find("android.avd").ifPresent(options::setAvd);
