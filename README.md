@@ -16,6 +16,8 @@ Needs JDK 21 and Chrome.
 
 Config: copy `.env.example` to `.env`, or pass `-Dkey=value`.
 
+Desktop runs draw a red dot where the automation moves and clicks (Selenium doesn't move the real cursor). Turn off with `-Dshow.cursor=false`.
+
 ## Scope
 
 - Register / login (Scopely ID, email + one-time code)
