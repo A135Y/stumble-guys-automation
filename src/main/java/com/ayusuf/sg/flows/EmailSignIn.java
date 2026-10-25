@@ -7,6 +7,7 @@ import com.ayusuf.sg.email.ScopelyEmailParser;
 import com.ayusuf.sg.pages.AlmostTherePopup;
 import com.ayusuf.sg.pages.HomePage;
 import com.ayusuf.sg.pages.ScopelySignInPage;
+import com.ayusuf.sg.support.StepTimer;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -34,6 +35,7 @@ public class EmailSignIn {
     /** From the website header. Returns true if this created a new Scopely account. */
     public boolean signIn() {
         ScopelySignInPage page = new HomePage(driver).open().openMenu().clickLogin().continueWithEmail();
+        StepTimer.step("scopely page open");
         boolean newAccount = complete(page);
         // not urlContains: the Scopely URL carries redirect_uri=https://www.stumbleguys.com in its query
         // then the site swaps ?code= for tokens, and only after that renders logged in (or "Almost there")
@@ -42,6 +44,7 @@ public class EmailSignIn {
         new WebDriverWait(driver, Duration.ofSeconds(30)).ignoring(StaleElementReferenceException.class)
                 .until(d -> d.getCurrentUrl().startsWith(Config.baseUrl()) && home.hasScopelyToken()
                         && (home.isLoggedInNow() || almostThere.isShownNow()));
+        StepTimer.step("back on site, settled");
         return newAccount;
     }
 
@@ -49,7 +52,9 @@ public class EmailSignIn {
     public boolean complete(ScopelySignInPage page) {
         Instant sent = Instant.now().minusSeconds(5);
         boolean newAccount = page.submitEmail(inbox.address());
+        StepTimer.step("email submitted");
         EmailMessage email = inbox.waitForMessage(sent, EmailSignIn::isScopely, EMAIL_TIMEOUT);
+        StepTimer.step("email received");
 
         var code = ScopelyEmailParser.oneTimeCode(email.body());
         var link = ScopelyEmailParser.signInLink(email.body());
