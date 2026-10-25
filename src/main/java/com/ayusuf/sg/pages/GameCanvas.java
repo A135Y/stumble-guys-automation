@@ -4,6 +4,7 @@ import com.ayusuf.sg.config.Config;
 import com.ayusuf.sg.support.Artifacts;
 import com.ayusuf.sg.support.CursorOverlay;
 import com.ayusuf.sg.support.ImageMatcher;
+import com.ayusuf.sg.support.StepTimer;
 import com.ayusuf.sg.support.ImageMatcher.Match;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -45,8 +46,12 @@ public class GameCanvas extends BasePage {
 
     public GameCanvas open() {
         driver.get(Config.baseUrl() + "/play");
+        StepTimer.step("play page loaded");
         new CookieBanner(driver).denyIfPresent();
-        return waitUntilLoaded();
+        StepTimer.step("cookie banner handled");
+        waitUntilLoaded();
+        StepTimer.step("game loaded");
+        return this;
     }
 
     public GameCanvas waitUntilLoaded() {

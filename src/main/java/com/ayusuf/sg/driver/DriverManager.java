@@ -27,6 +27,12 @@ public final class DriverManager {
         WebDriver driver = DRIVER.get();
         if (driver != null) {
             try {
+                // leaving the page first stops WebGL; quitting with the game running took ~6s
+                driver.get("about:blank");
+            } catch (RuntimeException ignored) {
+                // browser already gone
+            }
+            try {
                 driver.quit();
             } finally {
                 DRIVER.remove();

@@ -1,6 +1,7 @@
 package com.ayusuf.sg.pages;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.StaleElementReferenceException;
@@ -16,13 +17,20 @@ public class CookieBanner extends BasePage {
 
     private static final By HOST = By.cssSelector("aside#usercentrics-cmp-ui");
     private static final By DENY = By.cssSelector("#deny");
+    private static final String HANDLED = "__sg_cookie_banner_handled";
 
     public CookieBanner(WebDriver driver) {
         super(driver);
     }
 
-    /** Clicks Deny if the banner shows up within a few seconds. */
+    /**
+     * Clicks Deny if the banner shows up within a few seconds. The banner only appears on the first page of a
+     * session, so once handled a marker in localStorage skips the wait on later pages.
+     */
     public void denyIfPresent() {
+        if (Boolean.TRUE.equals(js().executeScript("return localStorage.getItem(arguments[0]) === '1'", HANDLED))) {
+            return;
+        }
         try {
             WebElement deny = new WebDriverWait(driver, Duration.ofSeconds(8))
                     .ignoring(NoSuchElementException.class)
@@ -37,6 +45,11 @@ public class CookieBanner extends BasePage {
         } catch (TimeoutException ignored) {
             // no banner (consent already stored)
         }
+        js().executeScript("localStorage.setItem(arguments[0], '1')", HANDLED);
+    }
+
+    private JavascriptExecutor js() {
+        return (JavascriptExecutor) driver;
     }
 
     private boolean isBannerShown() {

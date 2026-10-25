@@ -18,6 +18,8 @@ Config: copy `.env.example` to `.env`, or pass `-Dkey=value`.
 
 Desktop runs draw a red dot where the automation moves and clicks (Selenium doesn't move the real cursor). Turn off with `-Dshow.cursor=false`.
 
+The browser opens at a fixed 1440x900 so the layout is the same on every machine. For a bigger window (e.g. recording), use `-Dwindow.maximized=true`.
+
 ## Scope
 
 - Register / login (Scopely ID, email + one-time code)
