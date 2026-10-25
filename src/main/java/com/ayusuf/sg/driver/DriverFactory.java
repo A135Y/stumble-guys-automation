@@ -33,7 +33,11 @@ public final class DriverFactory {
         }
 
         ChromeDriver driver = new ChromeDriver(options);
-        driver.manage().window().setSize(new Dimension(Config.getInt("window.width"), Config.getInt("window.height")));
+        if (Config.getBool("window.maximized")) {
+            driver.manage().window().maximize();
+        } else {
+            driver.manage().window().setSize(new Dimension(Config.getInt("window.width"), Config.getInt("window.height")));
+        }
         if (Config.getBool("show.cursor")) CursorOverlay.install(driver);
         return driver;
     }
