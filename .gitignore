@@ -27,3 +27,6 @@ recordings/
 
 # Node (Appium)
 node_modules/
+
+# Appium
+.cache/

@@ -1,0 +1,9 @@
+{
+  "name": "stumble-guys-automation-appium",
+  "private": true,
+  "description": "Pinned Appium server and Android driver used by the Java tests (-Pandroid)",
+  "devDependencies": {
+    "appium": "3.8.0",
+    "appium-uiautomator2-driver": "8.7.0"
+  }
+}
