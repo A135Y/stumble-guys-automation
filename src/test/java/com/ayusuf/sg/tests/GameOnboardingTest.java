@@ -26,6 +26,7 @@ public class GameOnboardingTest extends BaseTest {
         return game;
     }
 
+    @Test(groups = "core")
     public void ageGateBlocksAcceptUntilAgeIsSet() {
         GameCanvas game = startAsGuest();
         assertThat(game.isAgeAcceptEnabled()).as("Accept enabled at 0 years").isFalse();

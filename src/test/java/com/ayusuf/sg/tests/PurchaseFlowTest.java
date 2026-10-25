@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * PUR-01: shop item -> Xsolla checkout, stopping before payment.
  * Precondition: a logged-in, game-linked account (reused, or linked in the web game if missing).
  */
-@Test(groups = "purchase")
+@Test(groups = {"purchase", "core"})
 public class PurchaseFlowTest extends BaseTest {
 
     public void checkoutOpensAndStopsBeforePayment() {

@@ -10,7 +10,7 @@ import org.testng.annotations.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /** AUTH-02: an account already linked to a game profile logs in (code path). */
-@Test(groups = "auth")
+@Test(groups = {"auth", "core"})
 public class LoginTest extends BaseTest {
 
     public void linkedAccountLogsIn() {

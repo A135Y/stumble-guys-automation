@@ -26,6 +26,26 @@ Out of scope:
 - Registration: a new Mail.tm inbox per run.
 - Login / purchase: an account that is already linked to a game profile. One per platform, because an account can only have one active session.
 
+## Suites
+
+**Core** (`-Dgroups=core`) - run on desktop and Android. Covers the brief: login, one purchase flow stopping before payment, and in-game cases.
+
+| ID | Test |
+|---|---|
+| AUTH-02 | Linked account logs in |
+| AUTH-04 | Register -> link in the web game -> log in |
+| PUR-01 | Shop -> Xsolla checkout, stops before payment |
+| WGL-01 | Game loads to the welcome screen |
+| WGL-04 | Age gate blocks Accept until an age is set |
+| WGL-05 | Lobby -> Customize -> tab -> back |
+| WGL-06 | Lobby -> Events -> Ranked tab -> back |
+
+**Desktop extras** - kept as additional coverage, not ported to mobile: AUTH-01 (new email reaches "Almost there"), WGL-02 (onboarding reaches the asset download).
+
+**Always run by default** (`./mvnw test`): unit tests (no browser) and smoke tests (no account).
+
+The exploration probes used to capture each new screen before writing its test were removed once the tests existed; they're in the git history.
+
 ## Test cases
 
 | ID | Title | Platforms | Group |
