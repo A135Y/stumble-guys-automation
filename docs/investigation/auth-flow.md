@@ -77,3 +77,10 @@ The Scopely pages have `data-test-id` attributes, which are more stable than the
 | Step heading | `h1.title` ("Let's get you in!" / "Let's create a Scopely Account!") |
 | Code boxes (x6) | `input[class*='OneTimeCodeInput_oneTimeCodeInput']` - not the hidden Okta `credentials.passcode` input |
 | Sign in (code step) | `button[class*='OneTimeCodeInput_submitButton']` |
+
+## Linking from the web game (automated)
+
+1. `/play` loads to "WELCOME ABOARD!" (no age gate on a fresh load).
+2. In-game **Continue with email** opens `id.scopely.com` in a **popup**. Same email + code/link flow as the website. The popup closes itself when done.
+3. The game then shows **"Please enter your age"** (slider 0 - 55+, Accept). The first probe run stopped here because nothing handled it yet (issue #6). `GameCanvas.acceptAgeGate()` drags the slider and accepts.
+4. Logging in on the website right after linking (AUTH-04): the Scopely email field was wiped before submit, so no code was sent (issue #8). `submitEmail` now verifies the field and that the page moved on, and retries.
