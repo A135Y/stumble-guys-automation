@@ -20,7 +20,9 @@ import java.util.function.Supplier;
 public class CheckoutOverlay extends BasePage {
 
     private static final By FRAME = By.cssSelector("iframe.payment-container-iframe");
-    private static final By PAY_BUTTON = By.xpath("//button[normalize-space(.)='Pay']");
+    // desktop: a "Pay" button (card form). Mobile leads with Google Pay: a psdk-google-pay-button element wrapping
+    // Google's frame (the "Pay"-labelled button next to it is display:none). psdk-apple-pay is the iOS equivalent.
+    private static final By PAY_BUTTON = By.xpath("//button[normalize-space(.)='Pay'] | //psdk-google-pay-button | //psdk-apple-pay");
     private static final By CLOSE_BUTTON = By.cssSelector("button[aria-label*='lose' i], button[data-testid*='close' i]");
 
     public CheckoutOverlay(WebDriver driver) {

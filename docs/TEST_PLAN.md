@@ -40,6 +40,12 @@ Out of scope:
 | WGL-05 | Lobby -> Customize -> tab -> back |
 | WGL-06 | Lobby -> Events -> Ranked tab -> back |
 
+| WGL-M1 | Mobile: /play offers the Google Play / App Store apps instead of the game (Android only) |
+
+**On mobile browsers the site doesn't offer the WebGL game** - /play shows app store links. So on Android, WGL-01/04/05/06 and AUTH-04 (which links the account in the web game) are skipped with that reason (`@DesktopOnly`), and WGL-M1 checks what mobile gets instead. AUTH-02 and PUR-01 run on both. On mobile, PUR-01 needs the linked account created by AUTH-04 on desktop.
+
+Core on Android Chrome passed (2026-10-25): WGL-M1 7.6s, AUTH-02 21.6s, PUR-01 32s (Xsolla leads with Google Pay on mobile; not clicked). The five desktop-only tests skip instantly.
+
 **Desktop extras** - kept as additional coverage, not ported to mobile: AUTH-01 (new email reaches "Almost there"), WGL-02 (onboarding reaches the asset download).
 
 **Always run by default** (`./mvnw test`): unit tests (no browser) and smoke tests (no account).
@@ -88,6 +94,8 @@ Precondition (`LinkedAccountSetup`): a logged-in, game-linked account. Reuses `.
 4. Close the checkout; `PaymentGuard` confirms no window reached a completed-order page. Saves `pur01-checkout.png`
 
 Passed on desktop Chrome (2026-10-25): checkout showed Total £2.99, Pay not clicked, header logged in.
+
+On Android Chrome Xsolla leads with Google Pay ("Buy with G Pay", a `psdk-google-pay-button` element; the "Pay"-labelled button beside it is hidden), with Card and PayPal below. The test accepts the Pay button or the Google/Apple Pay element and clicks neither.
 
 ### AUTH-02 (implemented, `LoginTest`)
 Saved linked account -> email -> code -> logged in, no "Almost there". Passed 2026-10-25 (12.2s).
