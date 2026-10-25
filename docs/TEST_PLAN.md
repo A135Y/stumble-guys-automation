@@ -38,7 +38,8 @@ Out of scope:
 | WGL-01 | Game loads to the welcome screen | Desktop | webgl |
 | WGL-02 | Guest onboarding: Start Playing -> age gate -> past it to asset download | Desktop | webgl |
 | WGL-04 | Age gate: Accept disabled and ignored at 0 years, enabled once an age is set | Desktop | webgl |
-| WGL-05 | Gameplay: join a round, holding the up arrow moves the player | Desktop | webgl-slow (opt-in) |
+| WGL-05 | Lobby: Customize opens the customisation screen and Back returns to the lobby | Desktop | webgl-slow (opt-in, planned) |
+| WGL-06 | Lobby: Events opens the events screen and Back returns to the lobby | Desktop | webgl-slow (opt-in, planned) |
 
 Details are added as each case is implemented.
 
@@ -82,15 +83,10 @@ WGL-02: set 25 -> Accept -> "Download Assets" prompt with OK.
 
 Both passed on desktop Chrome (2026-10-25): WGL-04 53.8s, WGL-02 58.0s (mostly the 30-45s game load).
 
-### WGL-05 (implemented, `GameplayTest`, group `webgl-slow`)
-Fresh browser every run, so it **downloads the 788 MB of game assets each time** (decided over caching a browser profile: keeps runs isolated, at the cost of time and bandwidth). Opt-in only: `./mvnw test -Dgroups=webgl-slow`. Joins a real match with a guest player.
-1. Onboarding (as WGL-02) -> OK on Download Assets
-2. Wait for the lobby PLAY button, closing promo popups (blue X) as they appear
-3. PLAY -> wait for the round HUD ("Objective" / "Qualified", same on every map)
-4. Measure screen change over 3s standing still, then over 3s holding the up arrow (the run key)
-5. Expect: still in the round, and running changes the screen clearly more than standing (> 2x idle, min 8)
+### WGL-05 / WGL-06 (planned, group `webgl-slow`)
+Lobby tests. The lobby sits behind a **788 MB asset download**, done in a fresh browser every run (decided over caching a browser profile: keeps runs isolated, at the cost of time and bandwidth). Opt-in only: `./mvnw test -Dgroups=webgl-slow`.
 
-Found with the gameplay probe (2026-10-25): a "Dear Fred's Candy Countdown" promo covered the lobby after the download; round seen: Spin Go Round (race to finish, 12 qualify).
+First tried a gameplay test (join a round, hold the up arrow). The gameplay probe got into a round once (Spin Go Round), but the WGL-05 run then sat on matchmaking waiting for players - depends on live servers and other people, so not a stable test. Switched to lobby screens, which open immediately and are deterministic. Promo popups (blue X) over the lobby are closed as they appear.
 
 ### Returning email (verified with the probe, used by AUTH-02)
 1. Same entry as AUTH-01; no new-account step

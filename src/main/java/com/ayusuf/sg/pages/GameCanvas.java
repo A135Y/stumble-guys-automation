@@ -202,16 +202,25 @@ public class GameCanvas extends BasePage {
         }
     }
 
-    /** Like waitFor, but closes promo popups while waiting (they show up over the lobby). */
-    public Match waitForClosingPopups(GameButton button, Duration timeout) {
+    /** Waits for the lobby with no popup over it, closing popups as they appear. */
+    public void waitForLobby(Duration timeout) {
         Instant deadline = Instant.now().plus(timeout);
         while (Instant.now().isBefore(deadline)) {
-            Optional<Match> m = find(button);
-            if (m.isPresent()) return m.get();
+            if (isLobbyReady(screenshot())) return;
             dismissPopups();
             sleep(Duration.ofSeconds(2));
         }
-        return waitFor(button, Duration.ofSeconds(1));
+        throw new IllegalStateException("Lobby not ready within " + timeout.toMinutes() + " min");
+    }
+
+    public boolean isLobbyReady() {
+        return isLobbyReady(screenshot());
+    }
+
+    /** PLAY matches even dimmed behind a popup (matching ignores brightness), so also require no popup X. */
+    static boolean isLobbyReady(BufferedImage canvas) {
+        return ImageMatcher.find(canvas, GameButton.LOBBY_PLAY.image(), MATCH_THRESHOLD).isPresent()
+                && ImageMatcher.find(canvas, GameButton.POPUP_CLOSE.image(), MATCH_THRESHOLD).isEmpty();
     }
 
     /** Closes promo popups (blue square X) until none is left; they can queue up. Returns how many. */

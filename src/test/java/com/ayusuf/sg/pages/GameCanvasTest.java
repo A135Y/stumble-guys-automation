@@ -33,18 +33,18 @@ public class GameCanvasTest {
         }
     }
 
-    public void lobbyAndRoundRecognised() {
-        BufferedImage lobby = load("lobby-880");
-        assertThat(score(lobby, GameButton.LOBBY_PLAY)).isGreaterThan(0.95);
-        assertThat(score(lobby, GameButton.HUD_QUALIFIED)).isLessThan(0.9);
-
-        // two captures from different parts of the map; the HUD labels match in both
-        for (String round : new String[]{"round-880", "round-2-880"}) {
-            assertThat(score(load(round), GameButton.HUD_OBJECTIVE)).as(round).isGreaterThan(0.9);
-            assertThat(score(load(round), GameButton.HUD_QUALIFIED)).as(round).isGreaterThan(0.9);
-            assertThat(score(load(round), GameButton.LOBBY_PLAY)).as(round).isLessThan(0.9);
+    public void lobbyPlayRecognised() {
+        assertThat(score(load("lobby-880"), GameButton.LOBBY_PLAY)).isGreaterThan(0.95);
+        for (String other : new String[]{"welcome-880", "download-assets-880"}) {
+            assertThat(score(load(other), GameButton.LOBBY_PLAY)).as(other).isLessThan(0.9);
         }
-        assertThat(score(load("welcome-880"), GameButton.LOBBY_PLAY)).isLessThan(0.9);
+    }
+
+    public void lobbyNotReadyWhileAPopupCoversIt() {
+        // the dimmed PLAY behind the popup still matches (0.97), which is why the popup X is checked too
+        assertThat(score(load("promo-popup-880"), GameButton.LOBBY_PLAY)).isGreaterThan(0.9);
+        assertThat(GameCanvas.isLobbyReady(load("promo-popup-880"))).isFalse();
+        assertThat(GameCanvas.isLobbyReady(load("lobby-880"))).isTrue();
     }
 
     private static double score(BufferedImage canvas, GameButton button) {

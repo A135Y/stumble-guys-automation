@@ -14,9 +14,7 @@ public enum GameButton {
     DOWNLOAD_TITLE("download-title"),
     DOWNLOAD_OK("download-ok"),
     POPUP_CLOSE("popup-close"),
-    LOBBY_PLAY("lobby-play"),
-    HUD_OBJECTIVE("hud-objective"),
-    HUD_QUALIFIED("hud-qualified");
+    LOBBY_PLAY("lobby-play");
 
     private final String file;
     private BufferedImage image;
