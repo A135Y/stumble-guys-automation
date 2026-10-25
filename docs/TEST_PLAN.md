@@ -35,8 +35,10 @@ Out of scope:
 | AUTH-03 | Wrong code is rejected | Desktop | auth |
 | AUTH-04 | Full flow: register -> link in game -> log in | Desktop | e2e-full (opt-in) |
 | PUR-01 | Shop item checkout stops at payment step | Desktop, Android | purchase |
-| WGL-01 | Game loads and shows the age gate | Desktop | webgl |
-| WGL-02 | Accepting the age gate reaches the welcome / lobby screen | Desktop | webgl |
+| WGL-01 | Game loads to the welcome screen | Desktop | webgl |
+| WGL-02 | Guest onboarding: Start Playing -> age gate -> past it to asset download | Desktop | webgl |
+| WGL-04 | Age gate: Accept disabled and ignored at 0 years, enabled once an age is set | Desktop | webgl |
+| WGL-05 | Gameplay: start a round and check the game reacts to keyboard input | Desktop | webgl (planned) |
 
 Details are added as each case is implemented.
 
@@ -68,6 +70,15 @@ Passed on desktop Chrome (2026-10-25): checkout showed Total £2.99, Pay not cli
 
 ### AUTH-02 (implemented, `LoginTest`)
 Saved linked account -> email -> code -> logged in, no "Almost there". Passed 2026-10-25 (12.2s).
+
+### WGL-02 / WGL-04 (implemented, `GameOnboardingTest`)
+Guest player, no account. Found with the onboarding probe (2026-10-25):
+- Start Playing on the welcome screen goes straight to the age gate
+- Accept is grey-blue at 0 years and clicking it does nothing; it turns green once an age is set
+- After Accept the game asks to **download 788 MB of assets** before the lobby
+
+WGL-04: Accept disabled at 0 -> click -> still on age gate -> set 25 -> Accept enabled.
+WGL-02: set 25 -> Accept -> "Download Assets" prompt with OK.
 
 ### Returning email (verified with the probe, used by AUTH-02)
 1. Same entry as AUTH-01; no new-account step
