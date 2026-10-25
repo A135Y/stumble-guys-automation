@@ -54,6 +54,12 @@ public class ImageMatcherTest {
         assertThat(ImageMatcher.find(age, CONTINUE, 0.9)).as("scores 0.78, closest false match").isEmpty();
     }
 
+    public void meanDifferenceIsZeroForSameImageAndLargeForDifferentScreens() {
+        BufferedImage welcome = ImageMatcher.load("/game/welcome-880.png");
+        assertThat(ImageMatcher.meanDifference(welcome, welcome)).isZero();
+        assertThat(ImageMatcher.meanDifference(welcome, ImageMatcher.load("/game/age-gate-880.png"))).isGreaterThan(10);
+    }
+
     public void noMatchWhenButtonIsGone() {
         BufferedImage canvas = copy(ImageMatcher.load("/game/welcome-880.png"));
         Graphics2D g = canvas.createGraphics();

@@ -38,7 +38,7 @@ Out of scope:
 | WGL-01 | Game loads to the welcome screen | Desktop | webgl |
 | WGL-02 | Guest onboarding: Start Playing -> age gate -> past it to asset download | Desktop | webgl |
 | WGL-04 | Age gate: Accept disabled and ignored at 0 years, enabled once an age is set | Desktop | webgl |
-| WGL-05 | Gameplay: start a round and check the game reacts to keyboard input | Desktop | webgl-slow (opt-in, planned) |
+| WGL-05 | Gameplay: join a round, holding the up arrow moves the player | Desktop | webgl-slow (opt-in) |
 
 Details are added as each case is implemented.
 
@@ -82,8 +82,15 @@ WGL-02: set 25 -> Accept -> "Download Assets" prompt with OK.
 
 Both passed on desktop Chrome (2026-10-25): WGL-04 53.8s, WGL-02 58.0s (mostly the 30-45s game load).
 
-### WGL-05 (planned, group `webgl-slow`)
+### WGL-05 (implemented, `GameplayTest`, group `webgl-slow`)
 Fresh browser every run, so it **downloads the 788 MB of game assets each time** (decided over caching a browser profile: keeps runs isolated, at the cost of time and bandwidth). Opt-in only: `./mvnw test -Dgroups=webgl-slow`. Joins a real match with a guest player.
+1. Onboarding (as WGL-02) -> OK on Download Assets
+2. Wait for the lobby PLAY button, closing promo popups (blue X) as they appear
+3. PLAY -> wait for the round HUD ("Objective" / "Qualified", same on every map)
+4. Measure screen change over 3s standing still, then over 3s holding the up arrow (the run key)
+5. Expect: still in the round, and running changes the screen clearly more than standing (> 2x idle, min 8)
+
+Found with the gameplay probe (2026-10-25): a "Dear Fred's Candy Countdown" promo covered the lobby after the download; round seen: Spin Go Round (race to finish, 12 qualify).
 
 ### Returning email (verified with the probe, used by AUTH-02)
 1. Same entry as AUTH-01; no new-account step

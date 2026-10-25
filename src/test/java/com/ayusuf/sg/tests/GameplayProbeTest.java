@@ -3,6 +3,7 @@ package com.ayusuf.sg.tests;
 import com.ayusuf.sg.pages.GameButton;
 import com.ayusuf.sg.pages.GameCanvas;
 import com.ayusuf.sg.support.Artifacts;
+import com.ayusuf.sg.support.ImageMatcher;
 import com.ayusuf.sg.support.StepTimer;
 import org.openqa.selenium.Keys;
 import org.testng.annotations.Test;
@@ -38,10 +39,7 @@ public class GameplayProbeTest extends BaseTest {
 
             waitUntilStable(game, "p01-download", Duration.ofMinutes(10));
             StepTimer.step("screen stable");
-            int closed = game.dismissPopups();
-            sleep(5);
-            closed += game.dismissPopups();
-            note("popups closed: " + closed);
+            note("popups closed after settling: " + game.dismissPopups());
             Artifacts.image("p02-lobby", game.screenshot());
             StepTimer.step("lobby clear");
 
@@ -58,14 +56,14 @@ public class GameplayProbeTest extends BaseTest {
             game.clickAt(0.5, 0.5);
             BufferedImage before = game.screenshot();
             Artifacts.image("p04-before-keys", before);
-            game.holdKey("w", Duration.ofSeconds(3));
+            game.holdKey(Keys.ARROW_UP, Duration.ofSeconds(3));
             BufferedImage afterW = game.screenshot();
-            Artifacts.image("p05-after-w", afterW);
+            Artifacts.image("p05-after-up", afterW);
             game.holdKey(Keys.SPACE, Duration.ofMillis(300));
             sleep(1);
             BufferedImage afterSpace = game.screenshot();
             Artifacts.image("p06-after-space", afterSpace);
-            note(String.format("diff before->W %.1f, W->space %.1f", diff(before, afterW), diff(afterW, afterSpace)));
+            note(String.format("diff before->up %.1f, up->space %.1f", diff(before, afterW), diff(afterW, afterSpace)));
             StepTimer.step("keys sent");
         } finally {
             Artifacts.text("summary.txt", String.join("\n", log) + "\n");
@@ -73,13 +71,15 @@ public class GameplayProbeTest extends BaseTest {
         }
     }
 
-    /** Captures every 10s until three captures in a row barely differ (or timeout). Returns the last one. */
+    /** Captures every 5s, closing popups as soon as they show, until three captures in a row barely differ. */
     private BufferedImage waitUntilStable(GameCanvas game, String prefix, Duration timeout) {
         Instant deadline = Instant.now().plus(timeout);
         BufferedImage previous = game.screenshot();
         int still = 0;
         for (int i = 1; Instant.now().isBefore(deadline); i++) {
-            sleep(10);
+            sleep(5);
+            int popups = game.dismissPopups();
+            if (popups > 0) note("closed " + popups + " popup(s) while waiting");
             BufferedImage current = game.screenshot();
             double d = diff(previous, current);
             Artifacts.image(prefix + "-" + i, current);
@@ -92,21 +92,8 @@ public class GameplayProbeTest extends BaseTest {
         return previous;
     }
 
-    /** Mean absolute grey-level difference (0-255), sampled every 4th pixel. */
-    static double diff(BufferedImage a, BufferedImage b) {
-        int w = Math.min(a.getWidth(), b.getWidth()), h = Math.min(a.getHeight(), b.getHeight());
-        long sum = 0, n = 0;
-        for (int y = 0; y < h; y += 4) {
-            for (int x = 0; x < w; x += 4) {
-                sum += Math.abs(grey(a.getRGB(x, y)) - grey(b.getRGB(x, y)));
-                n++;
-            }
-        }
-        return (double) sum / n;
-    }
-
-    private static int grey(int rgb) {
-        return (((rgb >> 16) & 0xff) * 299 + ((rgb >> 8) & 0xff) * 587 + (rgb & 0xff) * 114) / 1000;
+    private static double diff(BufferedImage a, BufferedImage b) {
+        return ImageMatcher.meanDifference(a, b);
     }
 
     private void canvas(GameCanvas game, String name) {

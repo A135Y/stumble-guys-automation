@@ -68,6 +68,23 @@ public final class ImageMatcher {
         return hVar == 0 ? -1 : cov / Math.sqrt(hVar * nVar);
     }
 
+    /** Mean absolute grey-level difference (0-255) between two same-size images, sampled every 4th pixel. */
+    public static double meanDifference(BufferedImage a, BufferedImage b) {
+        int w = Math.min(a.getWidth(), b.getWidth()), h = Math.min(a.getHeight(), b.getHeight());
+        long sum = 0, n = 0;
+        for (int y = 0; y < h; y += 4) {
+            for (int x = 0; x < w; x += 4) {
+                sum += Math.abs(grey(a.getRGB(x, y)) - grey(b.getRGB(x, y)));
+                n++;
+            }
+        }
+        return (double) sum / n;
+    }
+
+    private static int grey(int rgb) {
+        return (((rgb >> 16) & 0xff) * 299 + ((rgb >> 8) & 0xff) * 587 + (rgb & 0xff) * 114) / 1000;
+    }
+
     public static BufferedImage scaleToWidth(BufferedImage src, int width) {
         if (src.getWidth() == width) return src;
         int height = Math.round(src.getHeight() * (width / (float) src.getWidth()));

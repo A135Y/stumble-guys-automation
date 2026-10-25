@@ -202,6 +202,18 @@ public class GameCanvas extends BasePage {
         }
     }
 
+    /** Like waitFor, but closes promo popups while waiting (they show up over the lobby). */
+    public Match waitForClosingPopups(GameButton button, Duration timeout) {
+        Instant deadline = Instant.now().plus(timeout);
+        while (Instant.now().isBefore(deadline)) {
+            Optional<Match> m = find(button);
+            if (m.isPresent()) return m.get();
+            dismissPopups();
+            sleep(Duration.ofSeconds(2));
+        }
+        return waitFor(button, Duration.ofSeconds(1));
+    }
+
     /** Closes promo popups (blue square X) until none is left; they can queue up. Returns how many. */
     public int dismissPopups() {
         int closed = 0;
