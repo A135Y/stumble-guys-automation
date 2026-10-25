@@ -136,7 +136,7 @@ Both passed on desktop Chrome (2026-10-25) with the tab interactions: WGL-05 109
 
 | Risk | Mitigation |
 |---|---|
-| Scopely blocks disposable email domains | IMAP provider as a fallback (ADR 3) |
+| Scopely blocks disposable email domains | Documented limitation; the `EmailInbox` interface keeps the provider swappable |
 | Bot detection / captcha on sign-in | Run headed by default, document if it happens |
 | Ads change the page layout | Wait on specific elements; canvas clicks relative to the canvas |
 | Game UI changes (seasonal art) | Image matching on cropped buttons, not full screens |
