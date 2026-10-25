@@ -21,7 +21,7 @@ import java.util.function.Predicate;
 public class MailTmInbox implements EmailInbox {
 
     private static final ObjectMapper JSON = new ObjectMapper();
-    private static final Duration POLL_INTERVAL = Duration.ofSeconds(3);
+    private static final Duration POLL_INTERVAL = Duration.ofSeconds(1);
 
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     private final String apiUrl;

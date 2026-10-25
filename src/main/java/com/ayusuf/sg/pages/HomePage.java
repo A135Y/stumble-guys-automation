@@ -3,7 +3,11 @@ package com.ayusuf.sg.pages;
 import com.ayusuf.sg.config.Config;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 public class HomePage extends BasePage {
 
@@ -11,6 +15,7 @@ public class HomePage extends BasePage {
     private static final By MENU_BUTTON = By.xpath("//button[.//img[contains(@src,'/images/menu/')]]");
     private static final By LOGIN_BUTTON = By.cssSelector("button[class*='AuthButton_login']");
     private static final By LOGGED_OUT_ICON = By.cssSelector("img[src*='/images/menu/logged_out']");
+    private static final By SHOP_LINK = By.cssSelector("header a[href='/shop'], nav a[href='/shop']");
 
     public HomePage(WebDriver driver) {
         super(driver);
@@ -53,8 +58,27 @@ public class HomePage extends BasePage {
                 .executeScript("return localStorage.getItem('com.scopely:scopelyid:idToken') !== null");
     }
 
+    /**
+     * Logged in once the header has neither the logged-out icon nor the Login button (which is in the
+     * DOM even with the menu closed). Waits, since the header renders logged-out first.
+     */
     public boolean isLoggedIn() {
-        visible(MENU_BUTTON);
-        return !isLoggedOut();
+        try {
+            new WebDriverWait(driver, Duration.ofSeconds(10)).until(d -> isLoggedInNow());
+            return true;
+        } catch (TimeoutException e) {
+            return false;
+        }
+    }
+
+    /** Header rendered (Play link present) and neither logged-out marker in it. */
+    public boolean isLoggedInNow() {
+        return !driver.findElements(PLAY_LINK).isEmpty()
+                && driver.findElements(LOGGED_OUT_ICON).isEmpty() && driver.findElements(LOGIN_BUTTON).isEmpty();
+    }
+
+    public HomePage goToShopViaHeader() {
+        click(SHOP_LINK);
+        return this;
     }
 }

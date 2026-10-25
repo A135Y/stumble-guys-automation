@@ -27,7 +27,11 @@ public abstract class BasePage {
     }
 
     protected void click(By locator) {
-        WebElement el = wait.until(ExpectedConditions.elementToBeClickable(locator));
+        click(wait.until(ExpectedConditions.elementToBeClickable(locator)));
+    }
+
+    protected void click(WebElement el) {
+        wait.until(ExpectedConditions.elementToBeClickable(el));
         try {
             el.click();
         } catch (ElementClickInterceptedException e) {

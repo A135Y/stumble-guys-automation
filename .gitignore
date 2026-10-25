@@ -15,6 +15,7 @@ target/
 
 # Local config / secrets
 .env
+.local/
 *.local.properties
 
 # Test output
