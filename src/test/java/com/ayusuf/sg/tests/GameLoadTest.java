@@ -3,6 +3,7 @@ package com.ayusuf.sg.tests;
 import com.ayusuf.sg.pages.GameButton;
 import com.ayusuf.sg.pages.GameCanvas;
 import com.ayusuf.sg.support.Artifacts;
+import com.ayusuf.sg.support.StepTimer;
 import org.testng.annotations.Test;
 
 import java.time.Duration;
@@ -17,9 +18,11 @@ public class GameLoadTest extends BaseTest {
         GameCanvas game = new GameCanvas(driver).open();
 
         game.waitFor(GameButton.WELCOME_TITLE, Duration.ofSeconds(60));
+        StepTimer.step("welcome screen matched");
         Artifacts.image("welcome-canvas", game.screenshot());
 
         assertThat(game.isShown(GameButton.WELCOME_CONTINUE_WITH_EMAIL)).as("Continue with email").isTrue();
         assertThat(game.isShown(GameButton.WELCOME_START_PLAYING)).as("Start playing").isTrue();
+        StepTimer.step("buttons checked");
     }
 }
