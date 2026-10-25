@@ -57,9 +57,11 @@ public class GameCanvasTest {
         assertThat(score(load("events-880"), GameButton.EVENTS_TITLE)).isGreaterThan(0.95);
         assertThat(score(load("customize-880"), GameButton.EVENTS_TITLE)).isLessThan(0.9);
         assertThat(score(load("events-880"), GameButton.CUSTOMIZE_TITLE)).isLessThan(0.9);
-        // same back arrow on both screens
-        assertThat(score(load("customize-880"), GameButton.SCREEN_BACK)).isGreaterThan(0.95);
-        assertThat(score(load("events-880"), GameButton.SCREEN_BACK)).isGreaterThan(0.9);
+        // same back arrow on the screens and their sub-views (drawn slightly differently, hence the lower threshold)
+        for (String screen : new String[]{"customize-880", "events-880", "victory-animation-880", "ranked-880"}) {
+            assertThat(score(load(screen), GameButton.SCREEN_BACK)).as(screen).isGreaterThan(GameCanvas.BACK_THRESHOLD);
+        }
+        assertThat(score(load("lobby-2-880"), GameButton.SCREEN_BACK)).isLessThan(GameCanvas.BACK_THRESHOLD);
     }
 
     public void redPopupCloseAlsoBlocksLobby() {

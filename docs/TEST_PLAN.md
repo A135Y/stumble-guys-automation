@@ -93,6 +93,8 @@ First tried a gameplay test (join a round, hold the up arrow). The gameplay prob
 
 "Screen changes" = change after the click is more than 3x the change over the same 2s without clicking (the screens animate by themselves). No equipping or buying. Back is pressed repeatedly (closing popups) until the lobby is clear, since sub-views can need more than one.
 
+Seen: the Customize tab opens "Victory Animation", the Ranked tab opens "Ranked Season 27". The back arrow is drawn slightly differently there (match 0.85-0.95 vs 1.0 on the main screens), so it's matched at 0.8, with Escape as a fallback.
+
 Lobby probe (2026-10-25): both screens opened; Escape also goes back, but the tests use the visible back arrow.
 
 Both passed on desktop Chrome (2026-10-25): WGL-05 119s, WGL-06 93s (game load + 788 MB download + lobby is most of it). First run failed on a Chaotic Offers popup sliding in after returning; lobby-ready now has to hold for two checks.

@@ -8,6 +8,7 @@ import com.ayusuf.sg.support.StepTimer;
 import com.ayusuf.sg.support.ImageMatcher.Match;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
@@ -239,11 +240,23 @@ public class GameCanvas extends BasePage {
         waitFor(title, Duration.ofSeconds(15));
     }
 
-    /** Back arrow until the lobby is clear; sub-views can need more than one, and popups get closed on the way. */
+    /** The back arrow is drawn slightly differently on sub-views (0.85-1.0), so it gets a lower threshold. */
+    static final double BACK_THRESHOLD = 0.8;
+
+    /**
+     * Back until the lobby is clear; sub-views can need more than one, and popups get closed on the way.
+     * Uses the back arrow when it's recognised, otherwise Escape (also goes back in the game).
+     */
     public void backToLobby() {
         for (int i = 0; i < 4 && !isLobbyReady(); i++) {
             dismissPopups();
-            if (isShown(GameButton.SCREEN_BACK)) click(GameButton.SCREEN_BACK);
+            BufferedImage shot = screenshot();
+            Optional<Match> back = ImageMatcher.find(shot, GameButton.SCREEN_BACK.image(), BACK_THRESHOLD);
+            if (back.isPresent()) {
+                clickAt(back.get().x() / shot.getWidth(), back.get().y() / shot.getHeight());
+            } else {
+                holdKey(Keys.ESCAPE, Duration.ofMillis(150));
+            }
             sleep(Duration.ofSeconds(2));
         }
         waitForLobby(Duration.ofSeconds(30));
