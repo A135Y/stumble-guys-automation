@@ -3,6 +3,8 @@ package com.ayusuf.sg.tests;
 import com.ayusuf.sg.email.LinkedAccount;
 import com.ayusuf.sg.email.MailTmInbox;
 import com.ayusuf.sg.flows.EmailSignIn;
+import com.ayusuf.sg.pages.AlmostTherePopup;
+import com.ayusuf.sg.pages.HomePage;
 import com.ayusuf.sg.pages.ShopPage;
 import com.ayusuf.sg.support.Artifacts;
 import com.ayusuf.sg.support.PaymentGuard;
@@ -31,8 +33,16 @@ public class ShopProbeTest extends BaseTest {
 
         try {
             new EmailSignIn(driver, inbox).signIn();
+            state("s00a-after-signin");
+
+            driver.navigate().refresh();
+            state("s00b-after-reload");
+
+            new HomePage(driver).goToShopViaHeader();
+            state("s00c-shop-via-header-link");
+
             ShopPage shop = new ShopPage(driver).open();
-            page("s01-shop");
+            state("s01-shop-via-url");
 
             String shopTab = driver.getWindowHandle();
             Set<String> before = driver.getWindowHandles();
@@ -55,6 +65,14 @@ public class ShopProbeTest extends BaseTest {
             Artifacts.text("summary.txt", String.join("\n", log) + "\n");
             System.out.println("Probe output: " + Artifacts.RUN_DIR.toAbsolutePath());
         }
+    }
+
+    /** Captures the page plus the login markers that matter. */
+    private void state(String name) {
+        sleep(3);
+        page(name);
+        note(String.format("  idToken=%s almostThere=%s loggedIn=%s", new HomePage(driver).hasScopelyToken(),
+                new AlmostTherePopup(driver).isShown(Duration.ofSeconds(2)), new HomePage(driver).isLoggedIn()));
     }
 
     private Object iframeHosts() {
