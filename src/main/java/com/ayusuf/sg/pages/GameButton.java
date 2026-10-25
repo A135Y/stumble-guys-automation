@@ -10,7 +10,17 @@ public enum GameButton {
     WELCOME_START_PLAYING("welcome-start-playing"),
     WELCOME_CONTINUE_WITH_EMAIL("welcome-continue-with-email"),
     AGE_TITLE("age-title"),
-    AGE_ACCEPT("age-accept");
+    AGE_ACCEPT("age-accept"),
+    DOWNLOAD_TITLE("download-title"),
+    DOWNLOAD_OK("download-ok"),
+    POPUP_CLOSE("popup-close"),
+    POPUP_CLOSE_RED("popup-close-red"),
+    LOBBY_PLAY("lobby-play"),
+    LOBBY_CUSTOMIZE("lobby-customize"),
+    LOBBY_EVENTS("lobby-events"),
+    CUSTOMIZE_TITLE("customize-title"),
+    EVENTS_TITLE("events-title"),
+    SCREEN_BACK("screen-back");
 
     private final String file;
     private BufferedImage image;
