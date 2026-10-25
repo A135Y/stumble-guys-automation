@@ -13,7 +13,6 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -36,6 +35,8 @@ public class GameCanvas extends BasePage {
     public static final int REF_WIDTH = 880;
     private static final double MATCH_THRESHOLD = 0.9;
     private static final Duration LOAD_TIMEOUT = Duration.ofSeconds(90);
+    private static final Duration STALL_TIMEOUT = Duration.ofSeconds(30);
+    private static final int LOAD_ATTEMPTS = 2;
 
     private static final By CANVAS = By.cssSelector("canvas#react-unity-webgl-canvas-1");
     private static final By LOADING_PERCENT = By.xpath("//*[contains(@class,'font-lilita') and contains(normalize-space(.),'%')]");
@@ -44,22 +45,44 @@ public class GameCanvas extends BasePage {
         super(driver);
     }
 
+    /** Loads /play; if the game's loader stalls (seen stuck at 75%), reloads once. */
     public GameCanvas open() {
-        driver.get(Config.baseUrl() + "/play");
-        StepTimer.step("play page loaded");
-        new CookieBanner(driver).denyIfPresent();
-        StepTimer.step("cookie banner handled");
-        waitUntilLoaded();
-        StepTimer.step("game loaded");
-        return this;
+        for (int attempt = 1; attempt <= LOAD_ATTEMPTS; attempt++) {
+            driver.get(Config.baseUrl() + "/play");
+            StepTimer.step("play page loaded");
+            new CookieBanner(driver).denyIfPresent();
+            StepTimer.step("cookie banner handled");
+            if (waitUntilLoaded()) {
+                StepTimer.step("game loaded");
+                return this;
+            }
+            StepTimer.step("game load stalled at " + loaderText() + ", reloading");
+        }
+        throw new IllegalStateException("Game didn't load after " + LOAD_ATTEMPTS + " attempts (loader stuck at " + loaderText() + ")");
     }
 
-    public GameCanvas waitUntilLoaded() {
-        new WebDriverWait(driver, LOAD_TIMEOUT).until(d -> {
-            WebElement c = d.findElements(CANVAS).stream().findFirst().orElse(null);
-            return c != null && c.getSize().getWidth() > 300 && d.findElements(LOADING_PERCENT).isEmpty();
-        });
-        return this;
+    /** True once the canvas is up and the loader is gone; false if the loader stops moving or times out. */
+    public boolean waitUntilLoaded() {
+        Instant deadline = Instant.now().plus(LOAD_TIMEOUT);
+        String last = null;
+        Instant lastChange = Instant.now();
+        while (Instant.now().isBefore(deadline)) {
+            WebElement c = driver.findElements(CANVAS).stream().findFirst().orElse(null);
+            String progress = loaderText();
+            if (c != null && c.getSize().getWidth() > 300 && progress.isEmpty()) return true;
+            if (!progress.equals(last)) {
+                last = progress;
+                lastChange = Instant.now();
+            } else if (Duration.between(lastChange, Instant.now()).compareTo(STALL_TIMEOUT) > 0) {
+                return false;
+            }
+            sleep(Duration.ofSeconds(1));
+        }
+        return false;
+    }
+
+    private String loaderText() {
+        return driver.findElements(LOADING_PERCENT).stream().map(e -> e.getText().trim()).findFirst().orElse("");
     }
 
     /**
