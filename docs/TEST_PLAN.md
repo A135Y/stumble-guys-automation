@@ -55,7 +55,7 @@ Verified with the probe on desktop Chrome (2026-10-24). No code step for new acc
 4. Website login with the same email (returning: code)
 5. Expect: `idToken` stored, no "Almost there", header logged in. Saves `auth04-logged-in.png`
 
-Passed on desktop Chrome (2026-10-25) after fixing #6, #8, #9, #10.
+Passed on desktop Chrome (2026-10-25) after fixing #6, #8, #9, #10; passed again after the #12 fix and speed-ups (63.7s, was 1m53s).
 
 ### PUR-01 (implemented, `PurchaseFlowTest`, group `purchase`)
 Precondition (`LinkedAccountSetup`): a logged-in, game-linked account. Reuses `.local/linked-inbox.properties`; if missing or not logged in, links a new account in the web game and saves it. Doesn't depend on running AUTH-04 first.
