@@ -64,7 +64,7 @@ Precondition (`LinkedAccountSetup`): a logged-in, game-linked account. Reuses `.
 3. Expect: summary shows Total = clicked price, Card option, Pay button present. Nothing is filled in, Pay is never clicked.
 4. Close the checkout; `PaymentGuard` confirms no window reached a completed-order page. Saves `pur01-checkout.png`
 
-Checkout seen live with the shop probe (2026-10-25).
+Passed on desktop Chrome (2026-10-25): checkout showed Total £2.99, Pay not clicked, header logged in.
 
 ### Returning email (verified with the probe, used by AUTH-02)
 1. Same entry as AUTH-01; no new-account step
