@@ -20,6 +20,10 @@ public class AlmostTherePopup extends BasePage {
         return waitUntilVisible(POPUP);
     }
 
+    public boolean isShownNow() {
+        return driver.findElements(POPUP).stream().anyMatch(e -> e.isDisplayed());
+    }
+
     public boolean isShown(Duration within) {
         return waitUntilVisible(POPUP, within);
     }

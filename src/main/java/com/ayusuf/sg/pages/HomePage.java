@@ -64,12 +64,17 @@ public class HomePage extends BasePage {
      */
     public boolean isLoggedIn() {
         try {
-            new WebDriverWait(driver, Duration.ofSeconds(10)).until(d ->
-                    d.findElements(LOGGED_OUT_ICON).isEmpty() && d.findElements(LOGIN_BUTTON).isEmpty());
+            new WebDriverWait(driver, Duration.ofSeconds(10)).until(d -> isLoggedInNow());
             return true;
         } catch (TimeoutException e) {
             return false;
         }
+    }
+
+    /** Header rendered (Play link present) and neither logged-out marker in it. */
+    public boolean isLoggedInNow() {
+        return !driver.findElements(PLAY_LINK).isEmpty()
+                && driver.findElements(LOGGED_OUT_ICON).isEmpty() && driver.findElements(LOGIN_BUTTON).isEmpty();
     }
 
     public HomePage goToShopViaHeader() {

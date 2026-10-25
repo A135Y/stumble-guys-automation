@@ -4,8 +4,10 @@ import com.ayusuf.sg.config.Config;
 import com.ayusuf.sg.email.EmailInbox;
 import com.ayusuf.sg.email.EmailMessage;
 import com.ayusuf.sg.email.ScopelyEmailParser;
+import com.ayusuf.sg.pages.AlmostTherePopup;
 import com.ayusuf.sg.pages.HomePage;
 import com.ayusuf.sg.pages.ScopelySignInPage;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -34,10 +36,12 @@ public class EmailSignIn {
         ScopelySignInPage page = new HomePage(driver).open().openMenu().clickLogin().continueWithEmail();
         boolean newAccount = complete(page);
         // not urlContains: the Scopely URL carries redirect_uri=https://www.stumbleguys.com in its query
-        // then the site swaps ?code= for tokens asynchronously
+        // then the site swaps ?code= for tokens, and only after that renders logged in (or "Almost there")
         HomePage home = new HomePage(driver);
-        new WebDriverWait(driver, Duration.ofSeconds(30))
-                .until(d -> d.getCurrentUrl().startsWith(Config.baseUrl()) && home.hasScopelyToken());
+        AlmostTherePopup almostThere = new AlmostTherePopup(driver);
+        new WebDriverWait(driver, Duration.ofSeconds(30)).ignoring(StaleElementReferenceException.class)
+                .until(d -> d.getCurrentUrl().startsWith(Config.baseUrl()) && home.hasScopelyToken()
+                        && (home.isLoggedInNow() || almostThere.isShownNow()));
         return newAccount;
     }
 
