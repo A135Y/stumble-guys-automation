@@ -34,7 +34,7 @@ public class GameCanvas extends BasePage {
     /** Templates are cut from canvas screenshots scaled to this width. */
     public static final int REF_WIDTH = 880;
     private static final double MATCH_THRESHOLD = 0.9;
-    // loads took 22-90s+; keep waiting while the percentage moves, give up after 45s without change
+    // loads took 22-90s+; keep waiting while the percentage moves, give up after 45s without change (once past 0 %)
     private static final Duration LOAD_TIMEOUT = Duration.ofMinutes(3);
     private static final Duration STALL_TIMEOUT = Duration.ofSeconds(45);
     private static final int LOAD_ATTEMPTS = 2;
@@ -73,10 +73,12 @@ public class GameCanvas extends BasePage {
             WebElement c = driver.findElements(CANVAS).stream().findFirst().orElse(null);
             String progress = loaderText();
             if (c != null && c.getSize().getWidth() > 300 && progress.isEmpty()) return "";
+            // 0 % covers the main file download, which on a slow connection takes well over 45s
+            boolean started = !progress.isEmpty() && !progress.matches("0\\s*%");
             if (!progress.equals(last)) {
                 last = progress;
                 lastChange = Instant.now();
-            } else if (Duration.between(lastChange, Instant.now()).compareTo(STALL_TIMEOUT) > 0) {
+            } else if (started && Duration.between(lastChange, Instant.now()).compareTo(STALL_TIMEOUT) > 0) {
                 return "stalled at " + progress + " for " + STALL_TIMEOUT.toSeconds() + "s";
             }
             sleep(Duration.ofSeconds(1));
