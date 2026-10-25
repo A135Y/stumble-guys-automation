@@ -11,7 +11,7 @@ import java.time.Duration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /** WGL-01. No clicks inside the game. */
-@Test(groups = "webgl")
+@Test(groups = {"webgl", "core"})
 public class GameLoadTest extends BaseTest {
 
     public void gameLoadsToWelcomeScreen() {
