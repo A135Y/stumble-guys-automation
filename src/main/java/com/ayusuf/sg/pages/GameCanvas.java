@@ -34,8 +34,9 @@ public class GameCanvas extends BasePage {
     /** Templates are cut from canvas screenshots scaled to this width. */
     public static final int REF_WIDTH = 880;
     private static final double MATCH_THRESHOLD = 0.9;
-    private static final Duration LOAD_TIMEOUT = Duration.ofSeconds(90);
-    private static final Duration STALL_TIMEOUT = Duration.ofSeconds(30);
+    // loads took 22-90s+; keep waiting while the percentage moves, give up after 45s without change
+    private static final Duration LOAD_TIMEOUT = Duration.ofMinutes(3);
+    private static final Duration STALL_TIMEOUT = Duration.ofSeconds(45);
     private static final int LOAD_ATTEMPTS = 2;
 
     private static final By CANVAS = By.cssSelector("canvas#react-unity-webgl-canvas-1");
@@ -45,40 +46,42 @@ public class GameCanvas extends BasePage {
         super(driver);
     }
 
-    /** Loads /play; if the game's loader stalls (seen stuck at 75%), reloads once. */
+    /** Loads /play; if the game's loader stops moving (seen stuck at 75%), reloads once. */
     public GameCanvas open() {
+        String result = "";
         for (int attempt = 1; attempt <= LOAD_ATTEMPTS; attempt++) {
             driver.get(Config.baseUrl() + "/play");
             StepTimer.step("play page loaded");
             new CookieBanner(driver).denyIfPresent();
             StepTimer.step("cookie banner handled");
-            if (waitUntilLoaded()) {
+            result = waitUntilLoaded();
+            if (result.isEmpty()) {
                 StepTimer.step("game loaded");
                 return this;
             }
-            StepTimer.step("game load stalled at " + loaderText() + ", reloading");
+            StepTimer.step("game load " + result + ", reloading");
         }
-        throw new IllegalStateException("Game didn't load after " + LOAD_ATTEMPTS + " attempts (loader stuck at " + loaderText() + ")");
+        throw new IllegalStateException("Game didn't load after " + LOAD_ATTEMPTS + " attempts (" + result + ")");
     }
 
-    /** True once the canvas is up and the loader is gone; false if the loader stops moving or times out. */
-    public boolean waitUntilLoaded() {
+    /** Empty once the canvas is up and the loader is gone, otherwise why it gave up ("stalled at 75 %"). */
+    public String waitUntilLoaded() {
         Instant deadline = Instant.now().plus(LOAD_TIMEOUT);
         String last = null;
         Instant lastChange = Instant.now();
         while (Instant.now().isBefore(deadline)) {
             WebElement c = driver.findElements(CANVAS).stream().findFirst().orElse(null);
             String progress = loaderText();
-            if (c != null && c.getSize().getWidth() > 300 && progress.isEmpty()) return true;
+            if (c != null && c.getSize().getWidth() > 300 && progress.isEmpty()) return "";
             if (!progress.equals(last)) {
                 last = progress;
                 lastChange = Instant.now();
             } else if (Duration.between(lastChange, Instant.now()).compareTo(STALL_TIMEOUT) > 0) {
-                return false;
+                return "stalled at " + progress + " for " + STALL_TIMEOUT.toSeconds() + "s";
             }
             sleep(Duration.ofSeconds(1));
         }
-        return false;
+        return "still loading (" + loaderText() + ") after " + LOAD_TIMEOUT.toMinutes() + " min";
     }
 
     private String loaderText() {
