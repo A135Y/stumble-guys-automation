@@ -219,7 +219,7 @@ public class GameCanvas extends BasePage {
                 clear = 0;
                 dismissPopups();
             }
-            sleep(Duration.ofSeconds(3));
+            sleep(Duration.ofSeconds(2));
         }
         throw new IllegalStateException("Lobby not ready within " + timeout.toSeconds() + "s");
     }
@@ -248,16 +248,17 @@ public class GameCanvas extends BasePage {
      * Uses the back arrow when it's recognised, otherwise Escape (also goes back in the game).
      */
     public void backToLobby() {
-        for (int i = 0; i < 4 && !isLobbyReady(); i++) {
-            dismissPopups();
+        for (int i = 0; i < 6; i++) {
             BufferedImage shot = screenshot();
-            Optional<Match> back = ImageMatcher.find(shot, GameButton.SCREEN_BACK.image(), BACK_THRESHOLD);
-            if (back.isPresent()) {
-                clickAt(back.get().x() / shot.getWidth(), back.get().y() / shot.getHeight());
+            if (isLobbyReady(shot)) break;
+            Optional<Match> target = popupClose(shot).flatMap(b -> ImageMatcher.find(shot, b.image(), MATCH_THRESHOLD))
+                    .or(() -> ImageMatcher.find(shot, GameButton.SCREEN_BACK.image(), BACK_THRESHOLD));
+            if (target.isPresent()) {
+                clickAt(target.get().x() / shot.getWidth(), target.get().y() / shot.getHeight());
             } else {
                 holdKey(Keys.ESCAPE, Duration.ofMillis(150));
             }
-            sleep(Duration.ofSeconds(2));
+            sleep(Duration.ofMillis(1500));
         }
         waitForLobby(Duration.ofSeconds(30));
     }
@@ -291,9 +292,10 @@ public class GameCanvas extends BasePage {
             BufferedImage shot = screenshot();
             Optional<GameButton> close = popupClose(shot);
             if (close.isEmpty()) break;
-            click(close.get());
+            Match m = ImageMatcher.find(shot, close.get().image(), MATCH_THRESHOLD).orElseThrow();
+            clickAt(m.x() / shot.getWidth(), m.y() / shot.getHeight());
             closed++;
-            sleep(Duration.ofSeconds(2));
+            sleep(Duration.ofMillis(1500));
         }
         return closed;
     }

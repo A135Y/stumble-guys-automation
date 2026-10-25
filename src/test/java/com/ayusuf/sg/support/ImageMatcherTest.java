@@ -5,6 +5,9 @@ import org.testng.annotations.Test;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import javax.imageio.ImageIO;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
@@ -58,6 +61,31 @@ public class ImageMatcherTest {
         BufferedImage welcome = ImageMatcher.load("/game/welcome-880.png");
         assertThat(ImageMatcher.meanDifference(welcome, welcome)).isZero();
         assertThat(ImageMatcher.meanDifference(welcome, ImageMatcher.load("/game/age-gate-880.png"))).isGreaterThan(10);
+    }
+
+    /** The fast coarse-to-fine search must agree with the exhaustive one on every real capture. */
+    public void coarseToFineAgreesWithExhaustiveSearch() throws Exception {
+        var dir = Path.of(ImageMatcherTest.class.getResource("/game").toURI());
+        var screens = Files.list(dir).filter(f -> f.toString().endsWith("-880.png") || f.toString().endsWith("-920.png")).toList();
+        var buttons = Files.list(Path.of(ImageMatcher.class.getResource("/game").toURI())).filter(f -> f.toString().endsWith(".png")).toList();
+        assertThat(screens).hasSizeGreaterThan(10);
+        int compared = 0;
+        for (var screen : screens) {
+            BufferedImage canvas = ImageMatcher.scaleToWidth(ImageIO.read(screen.toFile()), 880);
+            for (var button : buttons) {
+                BufferedImage img = ImageIO.read(button.toFile());
+                var slow = ImageMatcher.bestExhaustive(canvas, img);
+                var fast = ImageMatcher.best(canvas, img);
+                String what = button.getFileName() + " on " + screen.getFileName();
+                assertThat(fast.score()).as(what).isLessThanOrEqualTo(slow.score() + 1e-9);
+                if (slow.score() >= 0.85) {
+                    assertThat(fast.score()).as(what).isCloseTo(slow.score(), within(0.02));
+                    assertThat(Math.abs(fast.x() - slow.x()) + Math.abs(fast.y() - slow.y())).as(what).isLessThanOrEqualTo(4);
+                }
+                compared++;
+            }
+        }
+        assertThat(compared).isGreaterThan(200);
     }
 
     public void noMatchWhenButtonIsGone() {
