@@ -122,16 +122,25 @@ public class GameCanvas extends BasePage {
         clickAt(m.x() / shot.getWidth(), m.y() / shot.getHeight());
     }
 
-    /** Drags the age slider (0 to 55+) and accepts. Positions measured on the 880px reference canvas. */
+    /** Sets the age slider and accepts. */
     public void acceptAgeGate(int age) {
+        setAge(age);
+        clickAgeAccept();
+        waitUntilGone(GameButton.AGE_TITLE, Duration.ofSeconds(30));
+    }
+
+    /** Drags the age slider (0 to 55+) from 0. Positions measured on the 880px reference canvas. */
+    public void setAge(int age) {
         waitFor(GameButton.AGE_TITLE, Duration.ofSeconds(30));
         double y = 211 / 495.0;
         double start = 332 / 880.0;
         double end = 548 / 880.0;
         double target = start + (end - start) * Math.min(age, 55) / 55.0;
         dragAt(start, y, target, y);
+    }
+
+    public void clickAgeAccept() {
         click(GameButton.AGE_ACCEPT);
-        waitUntilGone(GameButton.AGE_TITLE, Duration.ofSeconds(30));
     }
 
     public void waitUntilGone(GameButton button, Duration timeout) {
