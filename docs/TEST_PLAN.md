@@ -97,7 +97,7 @@ Seen: the Customize tab opens "Victory Animation", the Ranked tab opens "Ranked 
 
 Lobby probe (2026-10-25): both screens opened; Escape also goes back, but the tests use the visible back arrow.
 
-Both passed on desktop Chrome (2026-10-25): WGL-05 119s, WGL-06 93s (game load + 788 MB download + lobby is most of it). First run failed on a Chaotic Offers popup sliding in after returning; lobby-ready now has to hold for two checks.
+Both passed on desktop Chrome (2026-10-25) with the tab interactions: WGL-05 109s (Victory Animation, x51.8 vs idle), WGL-06 96s (Ranked, x10.9). Game load + 788 MB download + lobby is most of the time. Earlier runs failed on a Chaotic Offers popup sliding in after returning (lobby-ready now holds for two checks) and on the back arrow scoring under 0.9 on sub-views.
 
 ### Returning email (verified with the probe, used by AUTH-02)
 1. Same entry as AUTH-01; no new-account step
