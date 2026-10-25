@@ -35,8 +35,11 @@ Out of scope:
 | AUTH-03 | Wrong code is rejected | Desktop | auth |
 | AUTH-04 | Full flow: register -> link in game -> log in | Desktop | e2e-full (opt-in) |
 | PUR-01 | Shop item checkout stops at payment step | Desktop, Android | purchase |
-| WGL-01 | Game loads and shows the age gate | Desktop | webgl |
-| WGL-02 | Accepting the age gate reaches the welcome / lobby screen | Desktop | webgl |
+| WGL-01 | Game loads to the welcome screen | Desktop | webgl |
+| WGL-02 | Guest onboarding: Start Playing -> age gate -> past it to asset download | Desktop | webgl |
+| WGL-04 | Age gate: Accept disabled and ignored at 0 years, enabled once an age is set | Desktop | webgl |
+| WGL-05 | Lobby: Customize opens, a category tab responds, Back returns to the lobby | Desktop | webgl-slow (opt-in) |
+| WGL-06 | Lobby: Events opens, the Ranked tab responds, Back returns to the lobby | Desktop | webgl-slow (opt-in) |
 
 Details are added as each case is implemented.
 
@@ -68,6 +71,33 @@ Passed on desktop Chrome (2026-10-25): checkout showed Total £2.99, Pay not cli
 
 ### AUTH-02 (implemented, `LoginTest`)
 Saved linked account -> email -> code -> logged in, no "Almost there". Passed 2026-10-25 (12.2s).
+
+### WGL-02 / WGL-04 (implemented, `GameOnboardingTest`)
+Guest player, no account. Found with the onboarding probe (2026-10-25):
+- Start Playing on the welcome screen goes straight to the age gate
+- Accept is grey-blue at 0 years and clicking it does nothing; it turns green once an age is set
+- After Accept the game asks to **download 788 MB of assets** before the lobby
+
+WGL-04: Accept disabled at 0 -> click -> still on age gate -> set 25 -> Accept enabled.
+WGL-02: set 25 -> Accept -> "Download Assets" prompt with OK.
+
+Both passed on desktop Chrome (2026-10-25): WGL-04 53.8s, WGL-02 58.0s (mostly the 30-45s game load).
+
+### WGL-05 / WGL-06 (implemented, `GameLobbyTest`, group `webgl-slow`)
+Lobby tests. The lobby sits behind a **788 MB asset download**, done in a fresh browser every run (decided over caching a browser profile: keeps runs isolated, at the cost of time and bandwidth). Opt-in only: `./mvnw test -Dgroups=webgl-slow`.
+
+First tried a gameplay test (join a round, hold the up arrow). The gameplay probe got into a round once (Spin Go Round), but the WGL-05 run then sat on matchmaking waiting for players - depends on live servers and other people, so not a stable test. Switched to lobby screens, which open immediately and are deterministic. Promo popups over the lobby are closed as they appear (two styles seen: blue X "Dear Fred's Candy Countdown", red X "Chaotic Offers" - the latter has FREE claim buttons, never clicked).
+1. Onboarding -> Download Assets OK -> wait until the lobby is clear (PLAY visible, no popup X; PLAY matches even dimmed behind a popup)
+2. WGL-05: click CUSTOMIZE -> "CUSTOMIZE" screen -> click the second category tab -> screen changes -> back -> lobby clear
+3. WGL-06: click EVENTS -> "LET'S PLAY" screen -> click the Ranked tab -> screen changes -> back -> lobby clear
+
+"Screen changes" = change after the click is more than 3x the change over the same 2s without clicking (the screens animate by themselves). No equipping or buying. Back is pressed repeatedly (closing popups) until the lobby is clear, since sub-views can need more than one.
+
+Seen: the Customize tab opens "Victory Animation", the Ranked tab opens "Ranked Season 27". The back arrow is drawn slightly differently there (match 0.85-0.95 vs 1.0 on the main screens), so it's matched at 0.8, with Escape as a fallback.
+
+Lobby probe (2026-10-25): both screens opened; Escape also goes back, but the tests use the visible back arrow.
+
+Both passed on desktop Chrome (2026-10-25) with the tab interactions: WGL-05 109s (Victory Animation, x51.8 vs idle), WGL-06 96s (Ranked, x10.9). Game load + 788 MB download + lobby is most of the time. Earlier runs failed on a Chaotic Offers popup sliding in after returning (lobby-ready now holds for two checks) and on the back arrow scoring under 0.9 on sub-views.
 
 ### Returning email (verified with the probe, used by AUTH-02)
 1. Same entry as AUTH-01; no new-account step

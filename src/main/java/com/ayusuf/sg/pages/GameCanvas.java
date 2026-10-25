@@ -8,12 +8,12 @@ import com.ayusuf.sg.support.StepTimer;
 import com.ayusuf.sg.support.ImageMatcher.Match;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -35,7 +35,12 @@ public class GameCanvas extends BasePage {
     /** Templates are cut from canvas screenshots scaled to this width. */
     public static final int REF_WIDTH = 880;
     private static final double MATCH_THRESHOLD = 0.9;
-    private static final Duration LOAD_TIMEOUT = Duration.ofSeconds(90);
+    // loads took 22-90s+; keep waiting while the percentage moves, give up after 45s without change (once past 0 %)
+    private static final Duration LOAD_TIMEOUT = Duration.ofMinutes(3);
+    private static final Duration STALL_TIMEOUT = Duration.ofSeconds(45);
+    private static final int LOAD_ATTEMPTS = 2;
+
+    private BufferedImage[] lastChange;
 
     private static final By CANVAS = By.cssSelector("canvas#react-unity-webgl-canvas-1");
     private static final By LOADING_PERCENT = By.xpath("//*[contains(@class,'font-lilita') and contains(normalize-space(.),'%')]");
@@ -44,22 +49,48 @@ public class GameCanvas extends BasePage {
         super(driver);
     }
 
+    /** Loads /play; if the game's loader stops moving (seen stuck at 75%), reloads once. */
     public GameCanvas open() {
-        driver.get(Config.baseUrl() + "/play");
-        StepTimer.step("play page loaded");
-        new CookieBanner(driver).denyIfPresent();
-        StepTimer.step("cookie banner handled");
-        waitUntilLoaded();
-        StepTimer.step("game loaded");
-        return this;
+        String result = "";
+        for (int attempt = 1; attempt <= LOAD_ATTEMPTS; attempt++) {
+            driver.get(Config.baseUrl() + "/play");
+            StepTimer.step("play page loaded");
+            new CookieBanner(driver).denyIfPresent();
+            StepTimer.step("cookie banner handled");
+            result = waitUntilLoaded();
+            if (result.isEmpty()) {
+                StepTimer.step("game loaded");
+                return this;
+            }
+            StepTimer.step("game load " + result + ", reloading");
+        }
+        throw new IllegalStateException("Game didn't load after " + LOAD_ATTEMPTS + " attempts (" + result + ")");
     }
 
-    public GameCanvas waitUntilLoaded() {
-        new WebDriverWait(driver, LOAD_TIMEOUT).until(d -> {
-            WebElement c = d.findElements(CANVAS).stream().findFirst().orElse(null);
-            return c != null && c.getSize().getWidth() > 300 && d.findElements(LOADING_PERCENT).isEmpty();
-        });
-        return this;
+    /** Empty once the canvas is up and the loader is gone, otherwise why it gave up ("stalled at 75 %"). */
+    public String waitUntilLoaded() {
+        Instant deadline = Instant.now().plus(LOAD_TIMEOUT);
+        String last = null;
+        Instant lastChange = Instant.now();
+        while (Instant.now().isBefore(deadline)) {
+            WebElement c = driver.findElements(CANVAS).stream().findFirst().orElse(null);
+            String progress = loaderText();
+            if (c != null && c.getSize().getWidth() > 300 && progress.isEmpty()) return "";
+            // 0 % covers the main file download, which on a slow connection takes well over 45s
+            boolean started = !progress.isEmpty() && !progress.matches("0\\s*%");
+            if (!progress.equals(last)) {
+                last = progress;
+                lastChange = Instant.now();
+            } else if (started && Duration.between(lastChange, Instant.now()).compareTo(STALL_TIMEOUT) > 0) {
+                return "stalled at " + progress + " for " + STALL_TIMEOUT.toSeconds() + "s";
+            }
+            sleep(Duration.ofSeconds(1));
+        }
+        return "still loading (" + loaderText() + ") after " + LOAD_TIMEOUT.toMinutes() + " min";
+    }
+
+    private String loaderText() {
+        return driver.findElements(LOADING_PERCENT).stream().map(e -> e.getText().trim()).findFirst().orElse("");
     }
 
     /**
@@ -122,16 +153,46 @@ public class GameCanvas extends BasePage {
         clickAt(m.x() / shot.getWidth(), m.y() / shot.getHeight());
     }
 
-    /** Drags the age slider (0 to 55+) and accepts. Positions measured on the 880px reference canvas. */
+    /** Sets the age slider and accepts. */
     public void acceptAgeGate(int age) {
+        setAge(age);
+        clickAgeAccept();
+        waitUntilGone(GameButton.AGE_TITLE, Duration.ofSeconds(30));
+    }
+
+    /** Drags the age slider (0 to 55+) from 0. Positions measured on the 880px reference canvas. */
+    public void setAge(int age) {
         waitFor(GameButton.AGE_TITLE, Duration.ofSeconds(30));
         double y = 211 / 495.0;
         double start = 332 / 880.0;
         double end = 548 / 880.0;
         double target = start + (end - start) * Math.min(age, 55) / 55.0;
         dragAt(start, y, target, y);
+    }
+
+    public void clickAgeAccept() {
         click(GameButton.AGE_ACCEPT);
-        waitUntilGone(GameButton.AGE_TITLE, Duration.ofSeconds(30));
+    }
+
+    /** Accept is grey-blue until an age is set, then green. */
+    public boolean isAgeAcceptEnabled() {
+        return isAgeAcceptEnabled(screenshot());
+    }
+
+    static boolean isAgeAcceptEnabled(BufferedImage canvas) {
+        Match m = ImageMatcher.find(canvas, GameButton.AGE_ACCEPT.image(), MATCH_THRESHOLD)
+                .orElseThrow(() -> new IllegalStateException("Accept button not on screen"));
+        // sample the button background left of the label
+        long g = 0, b = 0, n = 0;
+        for (int y = (int) m.y() - 16; y < m.y() - 4; y++) {
+            for (int x = (int) m.x() - 68; x < m.x() - 48; x++) {
+                int rgb = canvas.getRGB(x, y);
+                g += (rgb >> 8) & 0xff;
+                b += rgb & 0xff;
+                n++;
+            }
+        }
+        return (g - b) / n > 60;
     }
 
     public void waitUntilGone(GameButton button, Duration timeout) {
@@ -142,6 +203,113 @@ public class GameCanvas extends BasePage {
             }
             sleep(Duration.ofSeconds(1));
         }
+    }
+
+    /**
+     * Waits for the lobby with no popup over it, closing popups as they appear. Popups can slide in a moment
+     * after the lobby shows (e.g. on returning from Customize), so it has to be clear on two checks in a row.
+     */
+    public void waitForLobby(Duration timeout) {
+        Instant deadline = Instant.now().plus(timeout);
+        int clear = 0;
+        while (Instant.now().isBefore(deadline)) {
+            if (isLobbyReady(screenshot())) {
+                if (++clear >= 2) return;
+            } else {
+                clear = 0;
+                dismissPopups();
+            }
+            sleep(Duration.ofSeconds(2));
+        }
+        throw new IllegalStateException("Lobby not ready within " + timeout.toSeconds() + "s");
+    }
+
+    public boolean isLobbyReady() {
+        return isLobbyReady(screenshot());
+    }
+
+    /** PLAY matches even dimmed behind a popup (matching ignores brightness), so also require no popup X. */
+    static boolean isLobbyReady(BufferedImage canvas) {
+        return ImageMatcher.find(canvas, GameButton.LOBBY_PLAY.image(), MATCH_THRESHOLD).isPresent()
+                && popupClose(canvas).isEmpty();
+    }
+
+    /** Opens a lobby screen and waits for its title. */
+    public void openFromLobby(GameButton button, GameButton title) {
+        click(button);
+        waitFor(title, Duration.ofSeconds(15));
+    }
+
+    /** The back arrow is drawn slightly differently on sub-views (0.85-1.0), so it gets a lower threshold. */
+    static final double BACK_THRESHOLD = 0.8;
+
+    /**
+     * Back until the lobby is clear; sub-views can need more than one, and popups get closed on the way.
+     * Uses the back arrow when it's recognised, otherwise Escape (also goes back in the game).
+     */
+    public void backToLobby() {
+        for (int i = 0; i < 6; i++) {
+            BufferedImage shot = screenshot();
+            if (isLobbyReady(shot)) break;
+            Optional<Match> target = popupClose(shot).flatMap(b -> ImageMatcher.find(shot, b.image(), MATCH_THRESHOLD))
+                    .or(() -> ImageMatcher.find(shot, GameButton.SCREEN_BACK.image(), BACK_THRESHOLD));
+            if (target.isPresent()) {
+                clickAt(target.get().x() / shot.getWidth(), target.get().y() / shot.getHeight());
+            } else {
+                holdKey(Keys.ESCAPE, Duration.ofMillis(150));
+            }
+            sleep(Duration.ofMillis(1500));
+        }
+        waitForLobby(Duration.ofSeconds(30));
+    }
+
+    /**
+     * Clicks at a position and returns how much more the screen changed than it does by itself over the same time
+     * (screens animate on their own). A ratio well above 1 means the click did something.
+     */
+    public double clickAndMeasureChange(double fx, double fy, Duration settle) {
+        BufferedImage a = screenshot();
+        sleep(settle);
+        BufferedImage idle = screenshot();
+        clickAt(fx, fy);
+        sleep(settle);
+        BufferedImage after = screenshot();
+        lastChange = new BufferedImage[]{idle, after};
+        double idleDiff = ImageMatcher.meanDifference(a, idle);
+        double clickDiff = ImageMatcher.meanDifference(idle, after);
+        return clickDiff / Math.max(idleDiff, 1.0);
+    }
+
+    /** Before/after images from the last clickAndMeasureChange, for evidence. */
+    public BufferedImage[] lastChange() {
+        return lastChange;
+    }
+
+    /** Closes promo popups (blue or red square X) until none is left; they can queue up. Returns how many. */
+    public int dismissPopups() {
+        int closed = 0;
+        while (closed < 5) {
+            BufferedImage shot = screenshot();
+            Optional<GameButton> close = popupClose(shot);
+            if (close.isEmpty()) break;
+            Match m = ImageMatcher.find(shot, close.get().image(), MATCH_THRESHOLD).orElseThrow();
+            clickAt(m.x() / shot.getWidth(), m.y() / shot.getHeight());
+            closed++;
+            sleep(Duration.ofMillis(1500));
+        }
+        return closed;
+    }
+
+    private static Optional<GameButton> popupClose(BufferedImage canvas) {
+        for (GameButton b : new GameButton[]{GameButton.POPUP_CLOSE, GameButton.POPUP_CLOSE_RED}) {
+            if (ImageMatcher.find(canvas, b.image(), MATCH_THRESHOLD).isPresent()) return Optional.of(b);
+        }
+        return Optional.empty();
+    }
+
+    /** Holds a key on the focused game (click the canvas first so Unity has focus). */
+    public void holdKey(CharSequence key, Duration duration) {
+        new Actions(driver).keyDown(key).pause(duration).keyUp(key).perform();
     }
 
     /** Clicks at a fraction of the canvas size, (0,0) top-left to (1,1) bottom-right. */
