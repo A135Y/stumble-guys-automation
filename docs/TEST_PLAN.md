@@ -57,6 +57,15 @@ Verified with the probe on desktop Chrome (2026-10-24). No code step for new acc
 
 Passed on desktop Chrome (2026-10-25) after fixing #6, #8, #9, #10.
 
+### PUR-01 (implemented, `PurchaseFlowTest`, group `purchase`)
+Precondition (`LinkedAccountSetup`): a logged-in, game-linked account. Reuses `.local/linked-inbox.properties`; if missing or not logged in, links a new account in the web game and saves it. Doesn't depend on running AUTH-04 first.
+1. `/shop` -> click the first price button (checked by `PaymentGuard`)
+2. Xsolla checkout opens in `iframe.payment-container-iframe` (payment types, card fields, summary, **Pay**)
+3. Expect: summary shows Total = clicked price, Card option, Pay button present. Nothing is filled in, Pay is never clicked.
+4. Close the checkout; `PaymentGuard` confirms no window reached a completed-order page. Saves `pur01-checkout.png`
+
+Checkout seen live with the shop probe (2026-10-25).
+
 ### Returning email (verified with the probe, used by AUTH-02)
 1. Same entry as AUTH-01; no new-account step
 2. Email "[NNNNNN] Your Scopely Account one-time code" -> type into the 6 boxes -> Sign in
