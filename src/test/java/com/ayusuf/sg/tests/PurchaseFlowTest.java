@@ -39,7 +39,7 @@ public class PurchaseFlowTest extends BaseTest {
 
         assertThat(form).as("checkout summary").contains("Total").contains(price);
         assertThat(form).as("payment options").contains("Card");
-        assertThat(checkout.hasPayButton()).as("stopped at Pay, not clicked").isTrue();
+        assertThat(checkout.hasPayButton()).as("Pay button reached (PaymentGuard blocks clicking it)").isTrue();
         PaymentGuard.assertNotPurchased(driver);
         StepTimer.step("checkout checked");
 

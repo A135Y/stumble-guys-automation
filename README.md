@@ -1,5 +1,7 @@
 # Stumble Guys Automation
 
+[![Unit tests](https://github.com/A135Y/stumble-guys-automation/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/A135Y/stumble-guys-automation/actions/workflows/unit-tests.yml)
+
 UI tests for https://www.stumbleguys.com on desktop Chrome and Chrome on Android.
 Java 21, Selenium 4, Appium 3, TestNG, Maven.
 
@@ -45,11 +47,16 @@ Optional config: copy `.env.example` to `.env`, or pass `-Dkey=value`.
 ./mvnw test -Dgroups=core                    # core tests, desktop
 ./mvnw test -Dgroups=core -Pandroid          # core tests, Android
 ./mvnw test -Dgroups=core -Dtest=PurchaseFlowTest   # one class
+./mvnw test -Dgroups=core -DexcludedGroups=webgl-slow,e2e-full   # core without the 788 MB lobby tests and new accounts
 ```
+
+`core` includes AUTH-04 (creates a real account) and WGL-05/06 (788 MB download each). AUTH-02 and PUR-01 create the linked account themselves on desktop if none is saved, so the order doesn't matter.
 
 Flags: `-Dheadless=true`, `-Dwindow.maximized=true` (bigger window), `-Dshow.cursor=false` (hides the red dot that shows where the test clicks), `-Drecord=true` (one video per test; on desktop the terminal needs macOS Screen Recording permission and `ffmpeg`).
 
-Screenshots, step timings and (Android) `appium.log` go to `target/artifacts/<timestamp>/`.
+Screenshots, step timings and (Android) `appium.log` go to `target/artifacts/<timestamp>/`. Test reports: `target/surefire-reports/index.html` (TestNG) and `emailable-report.html`.
+
+CI runs the unit tests on every push and PR (`.github/workflows/unit-tests.yml`). The browser suites run against the live site with real accounts, so they run locally.
 
 ## Browsers and devices
 

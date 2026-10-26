@@ -1,6 +1,7 @@
 package com.ayusuf.sg.pages;
 
 import com.ayusuf.sg.support.Artifacts;
+import com.ayusuf.sg.support.PaymentGuard;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoSuchFrameException;
@@ -58,6 +59,7 @@ public class CheckoutOverlay extends BasePage {
         boolean clicked = inForm(() -> {
             List<WebElement> close = driver.findElements(CLOSE_BUTTON).stream().filter(WebElement::isDisplayed).toList();
             if (close.isEmpty()) return false;
+            PaymentGuard.check(close.getFirst());
             close.getFirst().click();
             return true;
         });
