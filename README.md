@@ -65,7 +65,7 @@ Tested on macOS 26 (Apple Silicon):
 - **Live production site.** Tests create real Scopely accounts with disposable mail.tm inboxes; if mail.tm stops working or gets blocked, sign-up/login tests can't run. The linked account is saved in `.local/` (git-ignored).
 - **No purchases.** PUR-01 stops at the checkout; a guard refuses to click Pay-type buttons and fails if a page looks like a completed order.
 - **Login needs a game-linked account.** A new account stops at "Almost there" until it's linked in the game ([details](docs/investigation/auth-flow.md)). Run AUTH-04 on desktop before AUTH-02 / PUR-01 on Android.
-- **One session per account.** Don't run desktop and Android with the same account at the same time.
+- **One session per account.** Don't run desktop and Android with the same account at the same time. To run both at once, give Android its own account: add `-Dlinked.inbox=.local/android-inbox.properties` to a desktop AUTH-04 run and to the Android runs.
 - **Web game is desktop only**, and drawn on a canvas, so it's tested by matching button images. New seasonal art or promo popups can need new images (`src/main/resources/game`).
 - **Slow in-game tests.** A fresh browser every run means WGL-05/06 download ~788 MB each time; game load depends on the network (20–140s seen).
 - **Not covered:** matchmaking and real rounds (live servers, other players), Facebook login, native apps. Ads aren't blocked ([#7](https://github.com/A135Y/stumble-guys-automation/issues/7)).
