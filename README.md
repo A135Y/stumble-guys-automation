@@ -18,6 +18,8 @@ Java 21, Selenium 4, Appium 3, TestNG, Maven.
 
 ¹ Mobile browsers don't get the web game; `/play` shows app store links instead.
 
+**Videos of each test running** (desktop and Android): [Test recordings release](https://github.com/A135Y/stumble-guys-automation/releases/tag/recordings).
+
 Also: AUTH-01 (new email reaches "Almost there") and WGL-02 (onboarding → asset download) on desktop, plus unit and smoke tests. Steps for each test: [docs/TEST_PLAN.md](docs/TEST_PLAN.md).
 
 ## Setup
