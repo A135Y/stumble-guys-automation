@@ -41,7 +41,7 @@ public class ScopelySignInPage extends BasePage {
         // retried: with an existing Scopely session the page can reload and wipe the field mid-submit
         for (int attempt = 1; attempt <= 3; attempt++) {
             if (!typeEmail(email)) continue;
-            click(SUBMIT);
+            if (!clickSubmit()) continue;
             if (!waitForNextStep()) continue;
             if (isNewAccountStep()) {
                 click(SUBMIT);
@@ -50,6 +50,16 @@ public class ScopelySignInPage extends BasePage {
             return false;
         }
         throw new IllegalStateException("Email step didn't move on after 3 attempts");
+    }
+
+    /** False if the page reloaded between typing and clicking: the field is wiped and Continue disabled again. */
+    private boolean clickSubmit() {
+        try {
+            click(SUBMIT);
+            return true;
+        } catch (TimeoutException | StaleElementReferenceException e) {
+            return false;
+        }
     }
 
     /** True once a real next step shows; a reload alone (heading briefly missing) doesn't count. */
