@@ -46,7 +46,7 @@ public final class Artifacts {
         return write(fileName, content == null ? new byte[0] : content.getBytes(StandardCharsets.UTF_8));
     }
 
-    private static Path write(String fileName, byte[] bytes) {
+    static Path write(String fileName, byte[] bytes) {
         try {
             Files.createDirectories(RUN_DIR);
             Path file = RUN_DIR.resolve(fileName);
