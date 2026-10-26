@@ -23,8 +23,7 @@ public class GameLinking {
         this.inbox = inbox;
     }
 
-    /** Returns true if this created a new Scopely account. */
-    public boolean link() {
+    public EmailSignIn.Account link() {
         GameCanvas game = new GameCanvas(driver).open();
         game.waitFor(GameButton.WELCOME_TITLE, Duration.ofSeconds(60));
 
@@ -36,12 +35,12 @@ public class GameLinking {
         String popup = new WebDriverWait(driver, Duration.ofSeconds(20)).until(d ->
                 d.getWindowHandles().stream().filter(h -> !before.contains(h)).findFirst().orElse(null));
         driver.switchTo().window(popup);
-        boolean newAccount = new EmailSignIn(driver, inbox).complete(new ScopelySignInPage(driver).waitUntilLoaded());
+        EmailSignIn.Account account = new EmailSignIn(driver, inbox).complete(new ScopelySignInPage(driver).waitUntilLoaded());
 
         new WebDriverWait(driver, Duration.ofSeconds(30)).until(d -> !d.getWindowHandles().contains(popup));
         driver.switchTo().window(gameTab);
 
         game.acceptAgeGate(TEST_AGE);
-        return newAccount;
+        return account;
     }
 }

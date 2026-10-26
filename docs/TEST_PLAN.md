@@ -18,7 +18,7 @@ Out of scope:
 
 | Platform | Browser | Driver |
 |---|---|---|
-| Desktop (macOS / Windows / Linux) | Chrome | Selenium (ChromeDriver via Selenium Manager) |
+| Desktop (macOS; recording is macOS-only) | Chrome | Selenium (ChromeDriver via Selenium Manager) |
 | Android emulator (`sg-pixel`, Pixel 7, Android 15, arm64) | Chrome | Appium 3.8.0 + UiAutomator2 8.7.0 (pinned in `package.json`) |
 
 ## Test data
@@ -39,10 +39,11 @@ Out of scope:
 | WGL-04 | Age gate blocks Accept until an age is set |
 | WGL-05 | Lobby -> Customize -> tab -> back |
 | WGL-06 | Lobby -> Events -> Ranked tab -> back |
-
 | WGL-M1 | Mobile: /play offers the Google Play / App Store apps instead of the game (Android only) |
 
-**On mobile browsers the site doesn't offer the WebGL game** - /play shows app store links. So on Android, WGL-01/04/05/06 and AUTH-04 (which links the account in the web game) are skipped with that reason (`@DesktopOnly`), and WGL-M1 checks what mobile gets instead. AUTH-02 and PUR-01 run on both. On mobile, PUR-01 needs the linked account created by AUTH-04 on desktop.
+**On mobile browsers the site doesn't offer the WebGL game** - /play shows app store links. So on Android, WGL-01/04/05/06 and AUTH-04 (which links the account in the web game) are skipped with that reason (`@DesktopOnly`), and WGL-M1 checks what mobile gets instead. AUTH-02 and PUR-01 run on both. On desktop, PUR-01 and AUTH-02 create a linked account themselves if none is saved; on mobile they need the one created by AUTH-04 on desktop.
+
+Core includes the slow lobby tests (WGL-05/06, 788 MB download each) and AUTH-04, which creates a real account every run. To leave those out: `-Dgroups=core -DexcludedGroups=webgl-slow,e2e-full`.
 
 Core on Android Chrome passed (2026-10-25): WGL-M1 7.6s, AUTH-02 21.6s, PUR-01 32s (Xsolla leads with Google Pay on mobile; not clicked). The five desktop-only tests skip instantly.
 
@@ -56,18 +57,16 @@ The exploration probes used to capture each new screen before writing its test w
 
 | ID | Title | Platforms | Group |
 |---|---|---|---|
-| AUTH-01 | New email reaches "Almost there" after sign-in | Desktop, Android | auth |
+| AUTH-01 | New email reaches "Almost there" after sign-in | Desktop | auth |
 | AUTH-02 | Linked account logs in and header shows logged-in state | Desktop, Android | auth |
-| AUTH-03 | Wrong code is rejected | Desktop | auth |
-| AUTH-04 | Full flow: register -> link in game -> log in | Desktop | e2e-full (opt-in) |
+| AUTH-04 | Full flow: register -> link in game -> log in | Desktop | e2e-full, core |
 | PUR-01 | Shop item checkout stops at payment step | Desktop, Android | purchase |
 | WGL-01 | Game loads to the welcome screen | Desktop | webgl |
 | WGL-02 | Guest onboarding: Start Playing -> age gate -> past it to asset download | Desktop | webgl |
 | WGL-04 | Age gate: Accept disabled and ignored at 0 years, enabled once an age is set | Desktop | webgl |
-| WGL-05 | Lobby: Customize opens, a category tab responds, Back returns to the lobby | Desktop | webgl-slow (opt-in) |
-| WGL-06 | Lobby: Events opens, the Ranked tab responds, Back returns to the lobby | Desktop | webgl-slow (opt-in) |
-
-Details are added as each case is implemented.
+| WGL-05 | Lobby: Customize opens, a category tab responds, Back returns to the lobby | Desktop | webgl-slow, core |
+| WGL-06 | Lobby: Events opens, the Ranked tab responds, Back returns to the lobby | Desktop | webgl-slow, core |
+| WGL-M1 | Mobile /play offers the store apps instead of the game | Android | smoke, core |
 
 ### AUTH-01 (implemented, `RegisterTest`)
 1. Create a mail.tm inbox
@@ -112,7 +111,7 @@ WGL-02: set 25 -> Accept -> "Download Assets" prompt with OK.
 Both passed on desktop Chrome (2026-10-25): WGL-04 53.8s, WGL-02 58.0s (mostly the 30-45s game load).
 
 ### WGL-05 / WGL-06 (implemented, `GameLobbyTest`, group `webgl-slow`)
-Lobby tests. The lobby sits behind a **788 MB asset download**, done in a fresh browser every run (decided over caching a browser profile: keeps runs isolated, at the cost of time and bandwidth). Opt-in only: `./mvnw test -Dgroups=webgl-slow`.
+Lobby tests. The lobby sits behind a **788 MB asset download**, done in a fresh browser every run (decided over caching a browser profile: keeps runs isolated, at the cost of time and bandwidth). Part of core; on their own: `./mvnw test -Dgroups=webgl-slow`.
 
 First tried a gameplay test (join a round, hold the up arrow). The gameplay probe got into a round once (Spin Go Round), but the WGL-05 run then sat on matchmaking waiting for players - depends on live servers and other people, so not a stable test. Switched to lobby screens, which open immediately and are deterministic. Promo popups over the lobby are closed as they appear (two styles seen: blue X "Dear Fred's Candy Countdown", red X "Chaotic Offers" - the latter has FREE claim buttons, never clicked).
 1. Onboarding -> Download Assets OK -> wait until the lobby is clear (PLAY visible, no popup X; PLAY matches even dimmed behind a popup)
@@ -132,6 +131,10 @@ Both passed on desktop Chrome (2026-10-25) with the tab interactions: WGL-05 109
 2. Email "[NNNNNN] Your Scopely Account one-time code" -> type into the 6 boxes -> Sign in
 3. Unlinked account: back on stumbleguys.com with "Almost there". Linked account: should be logged in (AUTH-02, needs a linked test account)
 
+## Not covered
+
+- AUTH-03 (wrong code is rejected): planned, not implemented.
+
 ## Risks
 
 | Risk | Mitigation |
@@ -141,4 +144,4 @@ Both passed on desktop Chrome (2026-10-25) with the tab interactions: WGL-05 109
 | Ads change the page layout | Wait on specific elements; canvas clicks relative to the canvas |
 | Game UI changes (seasonal art) | Image matching on cropped buttons, not full screens |
 | One session per account | Separate accounts per platform, no parallel runs on one account |
-| Real accounts created on every full run | AUTH-04 is opt-in |
+| Real accounts created on every core run | AUTH-04 can be excluded (`-DexcludedGroups=e2e-full`); the default `./mvnw test` creates none |

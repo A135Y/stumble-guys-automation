@@ -33,8 +33,8 @@ public final class PaymentGuard {
     }
 
     public static void assertNotPurchased(WebDriver driver) {
+        String current = driver.getWindowHandle();
         for (String handle : driver.getWindowHandles()) {
-            String current = driver.getWindowHandle();
             driver.switchTo().window(handle);
             String url = driver.getCurrentUrl();
             driver.switchTo().window(current);

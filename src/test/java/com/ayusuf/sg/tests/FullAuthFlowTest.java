@@ -3,6 +3,7 @@ package com.ayusuf.sg.tests;
 import com.ayusuf.sg.email.LinkedAccount;
 import com.ayusuf.sg.email.MailTmInbox;
 import com.ayusuf.sg.flows.EmailSignIn;
+import com.ayusuf.sg.flows.EmailSignIn.Account;
 import com.ayusuf.sg.flows.GameLinking;
 import com.ayusuf.sg.flows.LinkedAccountSetup;
 import com.ayusuf.sg.pages.HomePage;
@@ -19,8 +20,8 @@ public class FullAuthFlowTest extends BaseTest {
     public void registerLinkInGameThenLogIn() {
         MailTmInbox inbox = MailTmInbox.create();
 
-        assertThat(new GameLinking(driver, inbox).link()).as("new Scopely account").isTrue();
-        assertThat(new EmailSignIn(driver, inbox).signIn()).as("returning user on the website").isFalse();
+        assertThat(new GameLinking(driver, inbox).link()).as("account created in the game").isEqualTo(Account.NEW);
+        assertThat(new EmailSignIn(driver, inbox).signIn()).as("same account on the website").isEqualTo(Account.EXISTING);
 
         HomePage home = new HomePage(driver);
         assertThat(home.hasScopelyToken()).as("Scopely idToken stored").isTrue();

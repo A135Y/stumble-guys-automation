@@ -17,4 +17,4 @@ Whoever reviews this needs to run the tests on their own machine without help fr
 ## Consequences
 
 - More setup work up front, but every test runs through the same harness.
-- Tests that create real accounts (full register -> link -> login) go in an opt-in TestNG group so a normal run doesn't create accounts every time.
+- Tests that create real accounts (full register -> link -> login) go in their own TestNG group (`e2e-full`), so the default `./mvnw test` creates none. AUTH-04 is also in `core` (the suite that covers the brief) and can be excluded with `-DexcludedGroups=e2e-full`.

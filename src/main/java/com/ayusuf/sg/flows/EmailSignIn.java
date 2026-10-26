@@ -22,6 +22,9 @@ import java.time.Instant;
  */
 public class EmailSignIn {
 
+    /** Whether signing in created the Scopely account or used an existing one. */
+    public enum Account { NEW, EXISTING }
+
     private static final Duration EMAIL_TIMEOUT = Duration.ofSeconds(90);
 
     private final WebDriver driver;
@@ -32,11 +35,11 @@ public class EmailSignIn {
         this.inbox = inbox;
     }
 
-    /** From the website header. Returns true if this created a new Scopely account. */
-    public boolean signIn() {
+    /** From the website header. */
+    public Account signIn() {
         ScopelySignInPage page = new HomePage(driver).open().openMenu().clickLogin().continueWithEmail();
         StepTimer.step("scopely page open");
-        boolean newAccount = complete(page);
+        Account account = complete(page);
         // not urlContains: the Scopely URL carries redirect_uri=https://www.stumbleguys.com in its query
         // then the site swaps ?code= for tokens, and only after that renders logged in (or "Almost there")
         HomePage home = new HomePage(driver);
@@ -45,11 +48,11 @@ public class EmailSignIn {
                 .until(d -> d.getCurrentUrl().startsWith(Config.baseUrl()) && home.hasScopelyToken()
                         && (home.isLoggedInNow() || almostThere.isShownNow()));
         StepTimer.step("back on site, settled");
-        return newAccount;
+        return account;
     }
 
     /** Finishes sign-in on an already open Scopely page (website or game). */
-    public boolean complete(ScopelySignInPage page) {
+    public Account complete(ScopelySignInPage page) {
         Instant sent = Instant.now().minusSeconds(5);
         boolean newAccount = page.submitEmail(inbox.address());
         StepTimer.step("email submitted");
@@ -67,7 +70,7 @@ public class EmailSignIn {
         } else {
             throw new IllegalStateException("No code or link in email: " + email.subject());
         }
-        return newAccount;
+        return newAccount ? Account.NEW : Account.EXISTING;
     }
 
     private static boolean isScopely(EmailMessage m) {
