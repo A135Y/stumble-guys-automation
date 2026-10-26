@@ -40,6 +40,7 @@ public class GameCanvas extends BasePage {
     private static final Duration STALL_TIMEOUT = Duration.ofSeconds(45);
     private static final Duration NO_GAME_TIMEOUT = Duration.ofSeconds(20);
     private static final int LOAD_ATTEMPTS = 2;
+    private static final Duration CLICK_TIMEOUT = Duration.ofSeconds(10);
 
     private BufferedImage[] lastChange;
 
@@ -152,11 +153,19 @@ public class GameCanvas extends BasePage {
                 button, timeout.toSeconds(), best.score(), saved.toAbsolutePath()));
     }
 
+    /** Clicks the button once it's on screen; screens animate in, so one unlucky frame isn't enough to fail. */
     public void click(GameButton button) {
-        BufferedImage shot = screenshot();
-        Match m = ImageMatcher.find(shot, button.image(), MATCH_THRESHOLD)
-                .orElseThrow(() -> new IllegalStateException(button + " not on screen"));
-        clickAt(m.x() / shot.getWidth(), m.y() / shot.getHeight());
+        Instant deadline = Instant.now().plus(CLICK_TIMEOUT);
+        do {
+            BufferedImage shot = screenshot();
+            Optional<Match> m = ImageMatcher.find(shot, button.image(), MATCH_THRESHOLD);
+            if (m.isPresent()) {
+                clickAt(m.get().x() / shot.getWidth(), m.get().y() / shot.getHeight());
+                return;
+            }
+            sleep(Duration.ofMillis(500));
+        } while (Instant.now().isBefore(deadline));
+        throw new IllegalStateException(button + " not on screen within " + CLICK_TIMEOUT.toSeconds() + "s");
     }
 
     /** Sets the age slider and accepts. */
