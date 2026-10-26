@@ -69,6 +69,7 @@ public class ImageMatcherTest {
         var screens = Files.list(dir).filter(f -> f.toString().endsWith("-880.png") || f.toString().endsWith("-920.png")).toList();
         var buttons = Files.list(Path.of(ImageMatcher.class.getResource("/game").toURI())).filter(f -> f.toString().endsWith(".png")).toList();
         assertThat(screens).hasSizeGreaterThan(10);
+        assertThat(buttons).hasSizeGreaterThan(10);
         int compared = 0;
         for (var screen : screens) {
             BufferedImage canvas = ImageMatcher.scaleToWidth(ImageIO.read(screen.toFile()), 880);
@@ -85,7 +86,7 @@ public class ImageMatcherTest {
                 compared++;
             }
         }
-        assertThat(compared).isGreaterThan(200);
+        assertThat(compared).isEqualTo(screens.size() * buttons.size());
     }
 
     public void noMatchWhenButtonIsGone() {
